@@ -1,0 +1,36 @@
+:root {
+  font-family: Arial, "Pretendard", sans-serif;
+  color: var(--color-text);
+  background: var(--color-page);
+}
+
+body {
+  min-width: 320px;
+  background: var(--color-page);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+input:focus {
+  border-color: var(--color-input-focus);
+  outline: none;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-accent);
+}
+
+button {
+  cursor: pointer;
+}

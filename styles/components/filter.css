@@ -1,0 +1,40 @@
+.filter-toggle-button {
+  min-width: 148px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  padding: 0 var(--space-4);
+}
+
+.filter-detail-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  min-height: 76px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+
+.filter-fields {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fold-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}

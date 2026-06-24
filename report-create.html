@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>알림장 작성</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/pages/report.css">
+    <script type="module" src="src/platforms/report-create.js"></script>
+  </head>
+  <body>
+    <main class="web-report-compose-shell" data-screen="webReportCompose" data-platform="web">
+      <header class="member-header web-report-header" data-area="header">
+        <strong class="brand-name">다이얼독 비즈</strong>
+        <h1>알림장 작성</h1>
+        <span class="header-utility">설정  알림  계정</span>
+      </header>
+
+      <div class="web-report-layout">
+        <aside class="business-navigation report-navigation web" data-area="navigation" data-platform="web">
+          <section class="business-navigation-profile" data-area="businessProfile">
+            <div class="business-navigation-avatar">
+              <img src="assets/images/defaultProfile_dog.svg" alt="입장 프로필">
+            </div>
+            <div class="business-navigation-profile-text">
+              <strong>다이얼독</strong>
+              <span>서울특별시</span>
+            </div>
+          </section>
+          <nav class="business-side-nav" aria-label="주요 메뉴">
+            <a class="business-side-nav-item" href="./index.html" data-action="navigate" data-target="대시보드" data-state="idle">대시보드</a>
+            <a class="business-side-nav-item" href="./index.html" data-action="navigate" data-target="유치원" data-state="idle">유치원</a>
+            <a class="business-side-nav-item" href="./hotel-home.html" data-action="navigate" data-target="호텔링" data-state="idle">호텔링</a>
+            <a class="business-side-nav-item is-selected" href="./report.html" data-action="navigate" data-target="알림장" data-state="selected">알림장</a>
+            <a class="business-side-nav-item" href="./member-home.html" data-action="navigate" data-target="회원" data-state="idle">회원</a>
+            <a class="business-side-nav-item" href="#" data-action="navigate" data-target="이용권" data-state="idle">이용권</a>
+          </nav>
+          <small class="business-navigation-footer">개인정보 처리방침  이용약관  문의</small>
+        </aside>
+
+        <section class="web-report-compose-content" data-area="content" data-feature="reportCompose" data-platform="web">
+          <div class="web-report-compose-title-bar">
+            <h1>알림장 작성</h1>
+            <div class="web-report-compose-control-group">
+              <div class="web-report-compose-actions">
+                <a class="danger-button web-report-compose-cancel" href="./report.html" data-action="cancelReportCompose">취소</a>
+                <button class="secondary-button web-report-compose-draft" type="button" data-action="saveReportDraft">임시저장</button>
+                <button class="primary-button web-report-compose-send" type="button" data-action="sendReport">바로전송</button>
+              </div>
+              <label class="web-report-reservation-option">
+                <input type="checkbox" data-field="isScheduledReport">
+                <span>예약전송</span>
+              </label>
+            </div>
+          </div>
+
+          <section class="surface-panel web-report-compose-panel" data-area="reportComposeForm">
+            <section class="web-report-date-field" data-area="reportDate">
+              <span class="web-report-field-label">날짜</span>
+              <button class="web-report-date-button" type="button" data-action="selectReportDate">
+                <span>2026. 6. 24</span>
+                <img src="assets/icons/iconCalendar.svg" alt="">
+              </button>
+            </section>
+
+            <section class="web-report-pet-section" data-area="reportPets">
+              <div class="web-report-section-title">
+                <span>
+                  반려견 선택
+                  <strong data-field="selectedReportPetSummary" data-summary-format="count">(0마리)</strong>
+                </span>
+                <button class="web-report-pet-edit-button" type="button" data-action="editReportPets" hidden>
+                  <span aria-hidden="true">✎</span>
+                  <strong>편집</strong>
+                </button>
+              </div>
+              <div class="web-report-pet-select-box">
+                <a class="web-report-pet-select-button" href="./report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
+                  <span aria-hidden="true">+</span>
+                  <strong>반려견 선택</strong>
+                </a>
+              </div>
+            </section>
+
+            <section class="web-report-media-field" data-area="mediaUpload">
+              <div class="web-report-section-title">
+                <span>사진 및 동영상</span>
+                <button class="web-report-help-button" type="button" aria-label="사진 및 동영상 도움말">?</button>
+              </div>
+              <div class="web-report-media-box">
+                <div class="web-report-media-toolbar">
+                  <span>전체 (0/50)</span>
+                  <span class="web-report-media-separator" aria-hidden="true"></span>
+                  <span>동영상 (0/1)</span>
+                  <button type="button" data-action="clearReportMedia">전체 삭제</button>
+                </div>
+                <div class="web-report-media-upload-row">
+                  <button class="web-report-media-upload-button" type="button" aria-label="사진 및 동영상 추가" data-action="addReportMedia">
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <label class="web-report-message-field">
+              <span class="web-report-field-label">내용</span>
+              <div class="web-report-message-box">
+                <textarea class="form-input" data-field="reportBody" placeholder="알림장은 1:1로 전송되며 AI 작성 버튼을 누르면 키워드를 참고해 자동으로 알림장을 생성합니다."></textarea>
+                <span class="web-report-message-count">0/1000</span>
+              </div>
+            </label>
+          </section>
+          <button class="web-report-ai-fab" type="button" data-action="createReportWithAi">
+            <span class="web-report-ai-fab-title">AI로 알림장 작성</span>
+            <span class="web-report-ai-fab-subtitle">사진 및 키워드를 작성하면 더욱 퀄리티 높은 알림장을 작성할 수 있어요.</span>
+          </button>
+        </section>
+      </div>
+    </main>
+
+    <main class="app-page-shell is-flex app-report-compose-screen" data-screen="appReportCompose" data-platform="app">
+      <header class="app-report-compose-header" data-area="header">
+        <a class="app-report-compose-close-button" href="./report.html" aria-label="알림장 작성 닫기" data-action="closeReportCompose">
+          <img src="assets/icons/iconClose.svg" alt="">
+        </a>
+        <h1>알림장 작성</h1>
+        <button class="app-report-compose-send-button" type="button" data-action="sendReport">전송</button>
+      </header>
+
+      <div class="app-report-compose-tabs" data-area="reportSendMode">
+        <button class="app-report-compose-tab is-selected" type="button" data-action="selectReportSendMode" data-mode="sendNow" data-state="selected">바로 전송</button>
+        <button class="app-report-compose-tab" type="button" data-action="selectReportSendMode" data-mode="draft" data-state="idle">임시 저장</button>
+      </div>
+
+      <section class="app-report-compose-content" data-area="content">
+        <a class="app-report-pet-select-button" href="./report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
+          <span class="app-report-pet-select-icon" aria-hidden="true">+</span>
+          <span data-field="selectedReportPetSummary">반려견 선택</span>
+        </a>
+
+        <div class="app-report-compose-divider"></div>
+
+        <section class="app-report-media-section" data-area="mediaUpload">
+          <h2 class="app-report-media-title">
+            <span>사진 및 동영상</span>
+            <strong>0/50</strong>
+          </h2>
+          <button class="app-report-media-upload-button" type="button" aria-label="사진 및 동영상 추가" data-action="addReportMedia">
+            <img src="assets/icons/iconCamera.svg" alt="">
+          </button>
+        </section>
+
+        <div class="app-report-compose-divider"></div>
+
+        <p class="app-report-compose-help">알림장은 1:1로 전송되며 AI 작성 버튼을 누르면 사진과 메모를 참고해 자동으로 알림장을 생성합니다.</p>
+      </section>
+
+      <button class="app-report-ai-fab" type="button" data-action="createReportWithAi">
+        <span class="app-report-ai-fab-title">AI로 알림장 작성</span>
+        <span class="app-report-ai-fab-subtitle">사진 및 키워드를 입력해 고퀄리티로 작성해 보세요.</span>
+      </button>
+    </main>
+  </body>
+</html>

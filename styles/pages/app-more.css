@@ -1,0 +1,160 @@
+.app-more-screen {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.app-more-shell {
+  position: relative;
+  width: min(100vw, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 0 98px;
+  background: var(--color-surface);
+}
+
+.app-more-header {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 20px;
+}
+
+.app-more-notification-button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  padding: 4px;
+}
+
+.app-more-notification-button .button-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.app-more-profile {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 20px 28px;
+}
+
+.app-more-avatar {
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e7f0ff;
+  overflow: hidden;
+}
+
+.app-more-avatar img {
+  width: 42px;
+  height: 42px;
+}
+
+.app-more-profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-text);
+}
+
+.app-more-profile-text span {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.app-more-profile-text strong {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.app-more-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 16px 18px;
+}
+
+.app-more-shortcut {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 10px;
+  background: #fafafa;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.app-more-shortcut img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.app-more-list-group {
+  border-top: 8px solid #f5f5f5;
+  padding: 0 16px;
+}
+
+.app-more-list-item {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.app-more-list-item img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
+}
+
+.app-more-logout-button {
+  width: 100%;
+  min-height: 74px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-warning);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+@media (min-width: 431px) {
+  .app-more-shell {
+    box-shadow: 0 0 0 1px var(--color-border-light);
+  }
+}
+
+@media (max-width: 360px) {
+  .app-more-profile {
+    gap: 18px;
+  }
+
+  .app-more-profile-text strong {
+    font-size: 22px;
+  }
+
+  .app-more-shortcut,
+  .app-more-list-item,
+  .app-more-logout-button {
+    font-size: 17px;
+  }
+}

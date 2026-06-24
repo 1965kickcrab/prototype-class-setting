@@ -1,0 +1,341 @@
+.member-home-shell,
+.member-registration-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr);
+  background: var(--color-page);
+}
+
+.member-header,
+.registration-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 var(--space-5);
+  background: var(--color-surface);
+}
+
+.member-header h1,
+.registration-header h1 {
+  display: none;
+}
+
+.brand-name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.header-utility {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.business-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  border-right: 1px solid var(--color-border-light);
+  padding: var(--space-5) var(--space-3);
+  background: var(--color-surface);
+}
+
+.business-navigation nav:not(.mobile-bottom-nav),
+.business-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business-navigation-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0 16px;
+}
+
+.business-navigation-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e0ecff;
+}
+
+.business-navigation-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.business-navigation-profile-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.business-navigation-profile-text strong {
+  font-size: 16px;
+}
+
+.business-navigation-profile-text span,
+.business-navigation-footer {
+  color: var(--color-text-secondary);
+}
+
+.business-side-nav-item {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 700;
+  text-align: left;
+  padding: 0 20px;
+}
+
+.business-side-nav-item img {
+  width: 24px;
+  height: 24px;
+}
+
+.business-side-nav-item.is-selected {
+  border-radius: 6px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.business-navigation-footer {
+  margin-top: auto;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.content,
+.registration-content {
+  min-width: 0;
+  padding: 0 20px;
+}
+
+.page-close-button {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.mobile-bottom-nav,
+.header-add-button {
+  display: none;
+}
+
+.hotel-home-web-shell,
+.hotel-home-app-shell,
+.school-home-web-shell,
+.school-home-app-shell {
+  display: none;
+}
+
+.hotel-home-web-shell,
+.school-home-web-shell {
+  min-height: 100vh;
+  background: var(--color-page-subtle);
+}
+
+.app-page-shell {
+  width: min(100vw, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: 56px minmax(0, 1fr);
+  background: var(--color-surface);
+}
+
+.app-page-shell.has-footer {
+  grid-template-rows: 56px minmax(0, 1fr) 52px;
+}
+
+.app-page-shell.is-flex {
+  display: flex;
+  flex-direction: column;
+}
+
+.hotel-web-header,
+.school-web-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 20px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.hotel-home-web-shell > .member-header,
+.school-home-web-shell > .member-header {
+  height: 48px;
+}
+
+.hotel-brand,
+.school-brand,
+.hotel-header-utility,
+.school-web-utilities,
+.hotel-app-header-left,
+.hotel-app-header-title-row,
+.hotel-app-header-actions,
+.school-app-header-row,
+.school-app-nav-left,
+.school-app-nav-title,
+.school-app-nav-actions,
+.hotel-calendar-controls,
+.school-calendar-controls,
+.hotel-detail-actions,
+.hotel-web-title-group,
+.school-web-title-group,
+.school-web-title-actions {
+  display: flex;
+  align-items: center;
+}
+
+.hotel-brand,
+.school-brand {
+  gap: var(--space-2);
+}
+
+.hotel-brand-logo,
+.school-brand-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.hotel-brand-text,
+.school-brand-text {
+  width: 103px;
+  height: 22px;
+}
+
+.hotel-header-utility,
+.school-web-utilities {
+  gap: var(--space-4);
+}
+
+.hotel-home-web-layout,
+.school-home-web-layout {
+  min-height: calc(100vh - 48px);
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+
+.hotel-app-header-title span {
+  color: var(--color-text-secondary);
+}
+
+.content[data-screen="hotelHome"],
+.content[data-screen="schoolHome"] {
+  padding: 0 20px 32px;
+}
+
+.hotel-web-title-bar,
+.school-web-title-bar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hotel-web-title-group,
+.school-web-title-group {
+  gap: 8px;
+}
+
+.hotel-web-title-bar h1,
+.school-web-title-bar h1 {
+  font-size: 28px;
+}
+
+.hotel-capacity-button,
+.school-capacity-button {
+  min-width: 85px;
+  height: 32px;
+}
+
+.hotel-calendar-panel.web,
+.hotel-detail-panel,
+.hotel-app-reservation-section,
+.school-calendar-panel,
+.school-reservation-panel,
+.school-app-sheet {
+  background: var(--color-surface);
+  border-radius: 12px;
+}
+
+.hotel-calendar-header.web,
+.hotel-calendar-header.app,
+.school-calendar-header.web {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hotel-calendar-controls,
+.school-calendar-controls {
+  gap: 12px;
+}
+
+.hotel-today-button,
+.school-calendar-today-button {
+  height: 28px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.hotel-app-mode-menu,
+.school-app-mode-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 2;
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.hotel-app-mode-option,
+.school-app-mode-option {
+  height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+}
+
+.hotel-app-mode-option.is-selected,
+.school-app-mode-option.is-selected {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 430px) {
+  .business-navigation .business-navigation-profile,
+  .business-navigation nav.business-side-nav,
+  .business-navigation .business-navigation-footer {
+    display: none;
+  }
+}

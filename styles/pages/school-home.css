@@ -1,0 +1,964 @@
+.school-home-screen .web-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.school-web-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.school-class-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.school-class-filter-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.school-class-filter-button {
+  min-width: 84px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: #555555;
+  padding: 0 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.school-class-filter-button.is-selected {
+  border-color: #1e78f0;
+  background: #f6f9ff;
+  color: #1e78f0;
+}
+
+.school-home-screen .calendar-panel {
+  background: var(--color-surface);
+  border-radius: 12px;
+}
+
+.school-home-screen .calendar-panel[data-platform="web"] {
+  padding: 12px 16px 16px;
+}
+
+.school-home-screen .calendar-panel[data-platform="app"] {
+  display: contents;
+}
+
+.school-home-screen .calendar-header[data-platform="web"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 12px;
+}
+
+.school-home-screen .calendar-header[data-platform="app"] {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px 12px;
+}
+
+.school-home-screen .calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.school-home-screen .calendar-controls[data-platform="app"] {
+  justify-content: center;
+}
+
+.school-home-screen .calendar-today-button {
+  min-width: 56px;
+  padding: 0 12px;
+}
+
+.school-home-screen .calendar-month-label {
+  min-width: 92px;
+  text-align: center;
+  font-size: 20px;
+}
+
+.school-home-screen .calendar-search-input {
+  width: 340px;
+}
+
+.school-home-screen .calendar-grid {
+  --calendar-grid-gap: 8px;
+  --calendar-cell-gap: 8px;
+  --calendar-date-position: static;
+  --calendar-date-min-height: 48px;
+  --calendar-date-width: auto;
+  --calendar-date-justify-self: auto;
+  --calendar-date-display: flex;
+  --calendar-date-direction: row;
+  --calendar-date-align: center;
+  --calendar-date-justify: center;
+  --calendar-date-border: 1px solid #f1f1f2;
+  --calendar-date-bg: #ffffff;
+  --calendar-date-padding: 0;
+  --calendar-date-text-align: center;
+  --calendar-selected-border: #1e78f0;
+  --calendar-selected-bg: #f6f9ff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--calendar-grid-gap);
+}
+
+.school-home-screen .calendar-grid[data-platform="web"] {
+  --calendar-grid-gap: 0;
+  --calendar-cell-gap: 0;
+  --calendar-date-position: relative;
+  --calendar-date-min-height: 72px;
+  --calendar-date-align: flex-start;
+  --calendar-date-justify: flex-start;
+  --calendar-date-padding: 4px 14px 12px;
+  --calendar-date-text-align: left;
+}
+
+.school-home-screen .calendar-grid[data-platform="app"] {
+  --calendar-cell-gap: 15px;
+  --calendar-date-width: 36px;
+  --calendar-date-justify-self: center;
+  --calendar-date-direction: column;
+  --calendar-date-align: center;
+  --calendar-date-justify: flex-start;
+  --calendar-date-border: 0;
+  --calendar-date-bg: transparent;
+  --calendar-selected-border: transparent;
+  --calendar-selected-bg: transparent;
+  padding: 0 16px 8px;
+}
+
+.school-home-screen .calendar-weekdays,
+.school-home-screen .calendar-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--calendar-cell-gap);
+}
+
+.school-home-screen .calendar-weekday {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+  font-weight: 700;
+}
+
+.school-home-screen .calendar-weekday.is-holiday {
+  color: #ed6060;
+}
+
+.school-home-screen .calendar-date {
+  position: var(--calendar-date-position);
+  min-height: var(--calendar-date-min-height);
+  width: var(--calendar-date-width);
+  justify-self: var(--calendar-date-justify-self);
+  display: var(--calendar-date-display);
+  flex-direction: var(--calendar-date-direction);
+  align-items: var(--calendar-date-align);
+  justify-content: var(--calendar-date-justify);
+  border: var(--calendar-date-border);
+  background: var(--calendar-date-bg);
+  color: #333333;
+  padding: var(--calendar-date-padding);
+  text-align: var(--calendar-date-text-align);
+  font-weight: 500;
+}
+
+.school-home-screen .calendar-date-box {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.school-home-screen .calendar-date-number {
+  line-height: 16px;
+}
+
+.school-home-screen .calendar-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: auto;
+  font-size: 12px;
+  line-height: 14px;
+  color: #666666;
+}
+
+.school-home-screen .calendar-class-summary {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.school-home-screen .calendar-class-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  border-radius: 5px;
+  background: #eef5ff;
+  color: #1e78f0;
+  padding: 2px 5px;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 700;
+}
+
+.school-home-screen .calendar-class-count.is-closed {
+  background: #fff1f1;
+  color: #ed6060;
+}
+
+.school-home-screen .calendar-date.is-muted {
+  color: #c4c4c4;
+}
+
+.school-home-screen .calendar-date.has-reservations {
+  border-color: #dbe9ff;
+}
+
+.school-home-screen .calendar-date.is-holiday {
+  color: #ed6060;
+}
+
+.school-home-screen .calendar-date.is-holiday .calendar-meta {
+  color: #ed6060;
+}
+
+.school-home-screen .calendar-date.is-selected {
+  border-color: var(--calendar-selected-border);
+  background: var(--calendar-selected-bg);
+  color: #333333;
+  font-weight: 700;
+}
+
+.school-home-screen .calendar-date.is-selected .calendar-meta {
+  color: #666666;
+}
+
+.school-home-screen .calendar-grid[data-platform="web"] .calendar-date.is-selected.is-holiday,
+.school-home-screen .calendar-grid[data-platform="web"] .calendar-date.is-selected.is-holiday .calendar-meta {
+  color: #ed6060;
+}
+
+.school-home-screen .calendar-date-box[data-platform="app"] {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  padding-top: 0;
+}
+
+.school-home-screen .calendar-date-box[data-platform="app"] .calendar-date-number {
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.school-home-screen .calendar-capacity-text {
+  margin-top: 1px;
+  font-size: 10px;
+  line-height: 12px;
+  color: #919191;
+}
+
+.school-home-screen .calendar-date.is-selected .calendar-date-box[data-platform="app"] {
+  background: #2f80ed;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.school-home-screen .app-reservation-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 12px;
+}
+
+.school-home-screen .app-reservation-item {
+  position: relative;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border-bottom: 1px solid #f1f1f2;
+}
+
+.school-home-screen .app-reservation-item strong {
+  font-size: 18px;
+}
+
+.school-home-screen .app-reservation-item span {
+  color: #919191;
+  font-size: 17px;
+  word-break: break-word;
+}
+
+.school-home-screen .app-reservation-item .tiny-icon-button {
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.school-reservation-panel.web {
+  padding: 16px;
+}
+
+.school-reservation-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.school-reservation-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.school-reservation-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.school-reservation-title-row > span:first-child {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.school-reservation-count {
+  color: #1e78f0;
+  font-size: 24px;
+}
+
+.school-reservation-count.is-holiday {
+  color: #ed6060;
+}
+
+.school-reservation-cancel-button {
+  width: 100px;
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #d7d7d9;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.school-reservation-cancel-button:disabled {
+  opacity: 0.7;
+}
+
+.school-reservation-table {
+  border: 1px solid #f1f1f2;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.school-reservation-table-row {
+  display: grid;
+  grid-template-columns: 40px 78px 110px repeat(3, minmax(0, 1fr));
+  align-items: center;
+  min-height: 50px;
+  padding: 0 16px 0 0;
+  border-top: 1px solid #f1f1f2;
+  background: #ffffff;
+}
+
+.school-reservation-table-row.is-header {
+  min-height: 40px;
+  border-top: 0;
+  background: #f6f6f6;
+  font-size: 14px;
+}
+
+.school-reservation-table-row > span,
+.school-reservation-table-row > strong {
+  text-align: center;
+  word-break: break-word;
+}
+
+.school-reservation-table-placeholder-row {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.school-reservation-table-placeholder {
+  color: #6b7280;
+}
+
+.school-reservation-checkbox-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.school-reservation-status {
+  color: #1e78f0;
+  font-weight: 700;
+}
+
+.school-home-app-shell {
+  min-height: 100vh;
+  background: #fafafb;
+  padding: 0 0 98px;
+}
+
+.school-home-app-shell .nav-item.is-selected {
+  font-weight: 700;
+}
+
+.school-app-header {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.school-app-header-row,
+.school-app-nav-left,
+.school-app-nav-title,
+.school-app-nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.school-app-header-row {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.school-app-nav-left {
+  gap: 12px;
+}
+
+.school-app-nav-icon-box {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #1e78f0;
+}
+
+.school-app-nav-icon-box img {
+  width: 20px;
+  height: 20px;
+}
+
+.school-app-nav-title {
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.school-app-nav-title strong {
+  font-size: 24px;
+}
+
+.school-app-nav-title span {
+  color: #919191;
+}
+
+.school-app-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.school-app-header-title-row img {
+  width: 16px;
+  height: 16px;
+}
+
+.school-app-nav-actions {
+  gap: 12px;
+}
+
+.school-app-register-button {
+  min-width: 88px;
+  height: 36px;
+  padding: 0 14px;
+}
+
+.school-app-sheet {
+  min-height: 394px;
+  margin-top: 8px;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 12px 16px 24px;
+  background: #ffffff;
+}
+
+.school-app-sheet-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 12px;
+}
+
+.school-app-sheet-title span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.school-app-class-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 8px 12px;
+  scrollbar-width: none;
+}
+
+.school-app-class-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.school-app-class-tabs[data-state="empty"] {
+  display: none;
+}
+
+.school-app-class-tab {
+  min-width: max-content;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e1e3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #333333;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.school-app-class-tab strong {
+  color: #919191;
+  font-size: 13px;
+}
+
+.school-app-class-tab.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.school-app-class-tab.is-selected strong {
+  color: #ffffff;
+}
+
+.school-holiday-empty-state {
+  min-height: 220px;
+}
+
+.school-holiday-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.school-registration-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.school-registration-modal {
+  width: min(940px, calc(100vw - 72px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.school-registration-modal-header {
+  position: relative;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 72px;
+}
+
+.school-registration-modal-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.school-registration-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.school-registration-modal-close .button-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.school-registration-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px 30px 18px;
+  overflow: auto;
+}
+
+.school-registration-field {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.school-registration-label {
+  padding-top: 10px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.school-registration-member-control {
+  position: relative;
+}
+
+.school-registration-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--color-text);
+  font-size: 16px;
+  padding: 0 40px 0 14px;
+}
+
+.school-registration-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.school-registration-field.has-error .school-registration-input {
+  border-color: var(--color-warning);
+}
+
+.school-registration-member-clear {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #c4c4c4;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.school-registration-member-suggestions {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  overflow: auto;
+}
+
+.school-registration-member-suggestions p {
+  margin: 0;
+  padding: 18px;
+  color: var(--color-text-secondary);
+}
+
+.school-registration-member-option {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-light);
+  background: #ffffff;
+  padding: 10px 18px;
+  text-align: left;
+}
+
+.school-registration-member-option:last-child {
+  border-bottom: 0;
+}
+
+.school-registration-member-option:hover {
+  background: var(--color-primary-soft);
+}
+
+.school-registration-member-option strong {
+  font-size: 16px;
+}
+
+.school-registration-member-option span {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.school-registration-calendar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.school-registration-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.school-registration-calendar-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.school-registration-calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.school-registration-calendar-controls strong {
+  min-width: 124px;
+  text-align: center;
+  font-size: 20px;
+}
+
+.school-registration-month-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0;
+}
+
+.school-registration-month-button .button-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.school-registration-calendar-grid {
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.school-registration-weekdays,
+.school-registration-calendar-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.school-registration-weekdays span {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.school-registration-weekdays span:last-child {
+  border-right: 0;
+}
+
+.school-registration-date {
+  position: relative;
+  min-height: 62px;
+  border: 0;
+  border-right: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+  background: #ffffff;
+  color: var(--color-text);
+  padding: 8px;
+  text-align: left;
+}
+
+.school-registration-calendar-row .school-registration-date:last-child {
+  border-right: 0;
+}
+
+.school-registration-calendar-row:last-child .school-registration-date {
+  border-bottom: 0;
+}
+
+.school-registration-date.is-muted {
+  background: #fbfbfc;
+  color: #d7d7d9;
+}
+
+.school-registration-date.is-holiday {
+  color: var(--color-warning);
+}
+
+.school-registration-date.is-selected {
+  background: #f6f9ff;
+}
+
+.school-registration-date.is-reserved {
+  color: #c4c4c4;
+  cursor: not-allowed;
+}
+
+.school-registration-date.is-disabled {
+  background: #fafafb;
+  color: #c4c4c4;
+  cursor: not-allowed;
+}
+
+.school-registration-date-number {
+  font-size: 15px;
+}
+
+.school-registration-date-holiday {
+  margin-left: 8px;
+  color: var(--color-warning);
+  font-size: 14px;
+}
+
+.school-registration-date-check {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.school-registration-date.is-reserved .school-registration-date-check {
+  background: #b9d6ff;
+}
+
+.school-registration-date-check img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+.school-registration-count-section {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-size: 18px;
+}
+
+.school-registration-count-section strong {
+  font-weight: 800;
+}
+
+.school-registration-count {
+  color: var(--color-text-secondary);
+  font-weight: 800;
+}
+
+.school-registration-count.is-active {
+  color: var(--color-warning);
+}
+
+.school-registration-count-over {
+  margin-left: auto;
+  color: var(--color-warning);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.school-registration-error {
+  min-height: 16px;
+  grid-column: 2;
+  color: var(--color-warning);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.school-registration-calendar-section > .school-registration-error {
+  min-height: 16px;
+}
+
+.school-registration-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 12px 30px 22px;
+}
+
+.school-registration-submit-button {
+  width: 320px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.school-registration-submit-button:disabled {
+  background: #d7d7d9;
+  border: none;
+  cursor: not-allowed;
+}

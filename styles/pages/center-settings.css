@@ -1,0 +1,133 @@
+.center-settings-screen {
+  min-height: 100vh;
+  background: var(--color-page-subtle);
+  color: var(--color-text);
+}
+
+.center-settings-header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 28px;
+  background: var(--color-surface);
+}
+
+.center-settings-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.center-settings-back-button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.center-settings-back-button .button-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.center-settings-layout {
+  min-height: calc(100vh - 56px);
+  display: grid;
+  grid-template-columns: 228px minmax(0, 1fr);
+}
+
+.center-settings-sidebar {
+  border-right: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  padding: 28px 12px;
+}
+
+.center-settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.center-settings-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.center-settings-drawer-trigger {
+  width: 100%;
+  height: 48px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 0 16px;
+  text-align: left;
+}
+
+.center-settings-drawer-trigger.is-active,
+.center-settings-drawer.is-open .center-settings-drawer-trigger {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.center-settings-drawer-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.center-settings-drawer-label {
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.center-settings-drawer-chevron {
+  width: 16px;
+  height: 16px;
+  transform: rotate(0deg);
+}
+
+.center-settings-drawer.is-open .center-settings-drawer-chevron {
+  transform: rotate(90deg);
+}
+
+.center-settings-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 48px;
+}
+
+.center-settings-submenu-item {
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 0 14px;
+  text-align: left;
+  font-size: 16px;
+}
+
+.center-settings-submenu-item.is-selected {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.center-settings-content {
+  min-width: 0;
+  padding: 24px 30px;
+}
+
+.center-settings-content-surface {
+  min-height: 336px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  background: var(--color-surface);
+}

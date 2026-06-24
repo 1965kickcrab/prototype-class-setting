@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Local environment
+.env
+.env.*
+
+# Dependencies / build outputs
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs / temporary files
+*.log
+*.tmp
+*.temp
+.cache/
+
+# Local tool indexes
+.codegraph/
+
+# Generated product/spec outputs
+outputs/

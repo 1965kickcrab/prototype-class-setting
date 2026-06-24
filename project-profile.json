@@ -1,0 +1,21 @@
+{
+  "projectId": "prototype-class-setting",
+
+  "audience": {
+    "allowedAudiencePairs": [
+      "Web/비즈",
+      "App/비즈"
+    ]
+  },
+
+  "responsiveMapping": {
+    "desktop": {
+      "platform": "Web",
+      "condition": "width > 430px"
+    },
+    "mobile": {
+      "platform": "App",
+      "condition": "width <= 430px"
+    }
+  }
+}

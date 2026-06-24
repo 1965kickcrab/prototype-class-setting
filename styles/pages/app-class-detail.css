@@ -1,0 +1,120 @@
+.app-class-detail-header {
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+}
+
+.app-class-header-spacer {
+  width: 40px;
+  height: 40px;
+}
+
+.app-class-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.app-class-detail-section {
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 16px;
+}
+
+.app-class-detail-section h2 {
+  color: var(--color-text);
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.app-class-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.app-class-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-class-detail-item dt,
+.app-class-detail-item dd {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.app-class-detail-item dt {
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.app-class-detail-item dd {
+  min-width: 0;
+  color: var(--color-text);
+  text-align: right;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.app-class-detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-class-detail-section-header strong {
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.app-class-detail-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.app-class-detail-member-item {
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.app-class-detail-member-item strong {
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.app-class-detail-member-item span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.app-class-detail-empty {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 14px;
+  font-size: 14px;
+}

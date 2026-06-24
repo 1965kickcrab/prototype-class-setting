@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>더보기</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/pages/app-more.css">
+  </head>
+  <body>
+    <main class="app-more-screen" data-screen="appMore">
+      <section class="app-more-shell" data-area="appMore">
+        <header class="app-more-header" data-area="header">
+          <button class="icon-button app-more-notification-button" type="button" aria-label="알림" data-action="openNotifications">
+            <img class="button-icon" src="assets/icons/menuIcon_notification.svg" alt="">
+          </button>
+        </header>
+
+        <section class="app-more-profile" data-area="profile">
+          <div class="app-more-avatar" aria-hidden="true">
+            <img src="assets/images/defaultProfile.svg" alt="">
+          </div>
+          <div class="app-more-profile-text">
+            <span>아이디</span>
+            <strong>wldnjs596</strong>
+          </div>
+        </section>
+
+        <section class="app-more-shortcuts" data-area="shortcutMenu" aria-label="주요 메뉴">
+          <a class="app-more-shortcut" href="./app-class-settings.html" data-action="navigate" data-target="유치원">
+            <img src="assets/icons/menuIcon_daycare_on.svg" alt="">
+            <span>유치원</span>
+          </a>
+          <a class="app-more-shortcut" href="#" data-action="navigate" data-target="이용권">
+            <img src="assets/icons/menuIcon_ticket_on.svg" alt="">
+            <span>이용권</span>
+          </a>
+          <a class="app-more-shortcut" href="./member-tag-management.html" data-action="navigate" data-target="태그 관리">
+            <img src="assets/icons/menuIcon_setting.svg" alt="">
+            <span>태그 관리</span>
+          </a>
+        </section>
+
+        <section class="app-more-list-group" data-area="supportMenu">
+          <a class="app-more-list-item" href="#" data-action="openFaq">
+            <span>자주 묻는 질문</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+          <a class="app-more-list-item" href="#" data-action="openPhoneInquiry">
+            <span>전화 문의</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+          <a class="app-more-list-item" href="#" data-action="openKakaoInquiry">
+            <span>카톡 문의</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+        </section>
+
+        <section class="app-more-list-group" data-area="policyMenu">
+          <a class="app-more-list-item" href="#" data-action="openAnnouncement">
+            <span>공지사항 &amp; 새소식</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+          <a class="app-more-list-item" href="#" data-action="openPrivacyPolicy">
+            <span>개인정보 처리 방침</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+          <a class="app-more-list-item" href="#" data-action="openTerms">
+            <span>서비스 이용 약관</span>
+            <img src="assets/icons/iconChevronRight.svg" alt="">
+          </a>
+        </section>
+
+        <button class="app-more-logout-button" type="button" data-action="logout">로그아웃</button>
+
+        <nav class="mobile-bottom-nav app-more-bottom-nav" aria-label="하단 내비게이션" data-area="bottomNavigation">
+          <a class="nav-item" href="./index.html" data-action="navigate" data-target="일정">일정</a>
+          <a class="nav-item" href="./report.html" data-action="navigate" data-target="알림장">알림장</a>
+          <a class="nav-item" href="./member-home.html" data-action="navigate" data-target="회원">회원</a>
+          <a class="nav-item is-selected" href="./app-more.html" data-action="navigate" data-target="더보기" data-state="selected">더보기</a>
+        </nav>
+      </section>
+    </main>
+  </body>
+</html>
