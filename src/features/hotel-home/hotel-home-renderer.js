@@ -1,6 +1,7 @@
 ﻿import { createEmptyStateElement } from "../../components/empty-state.js";
 import { createBusinessNavigation } from "../../components/navigation.js";
 import { createReservationSearchFilter } from "../../components/reservation-search-filter.js";
+import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { createElement } from "../../utils/dom.js";
 import {
   getCalendarCountsByDate,
@@ -93,13 +94,13 @@ function createHotelHomeAppShell(hotelHomeState) {
 
 function createWebHeader() {
   const header = createElement("header", {
-    className: "member-header",
+    className: "web-global-header",
     dataset: { area: "header" },
   });
 
   header.append(createElement("strong", { className: "brand-name", textContent: "다이얼독 비즈" }));
   header.append(createElement("h1", { textContent: "호텔링" }));
-  header.append(createElement("span", { className: "header-utility", textContent: "설정  알림  계정" }));
+  header.append(createWebHeaderActions());
   return header;
 }
 

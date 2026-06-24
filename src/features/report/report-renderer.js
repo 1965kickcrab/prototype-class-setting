@@ -1,4 +1,5 @@
 import { createBusinessNavigation, createDefaultAppBottomNavigation } from "../../components/navigation.js";
+import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { createElement } from "../../utils/dom.js";
 
 const DEFAULT_DOG_IMAGE = "assets/images/defaultProfile_dog.svg";
@@ -62,12 +63,12 @@ function createAppReportShell(entries) {
 
 function createWebHeader() {
   const header = createElement("header", {
-    className: "member-header web-report-header",
+    className: "web-global-header web-report-header",
     dataset: { area: "header", platform: "web" },
   });
   header.append(createElement("strong", { className: "brand-name", textContent: "다이얼독 비즈" }));
   header.append(createElement("h1", { textContent: "알림장" }));
-  header.append(createElement("span", { className: "header-utility", textContent: "설정  알림  계정" }));
+  header.append(createWebHeaderActions());
   return header;
 }
 

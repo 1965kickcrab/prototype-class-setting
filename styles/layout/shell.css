@@ -7,7 +7,7 @@
   background: var(--color-page);
 }
 
-.member-header,
+.web-global-header,
 .registration-header {
   grid-column: 1 / -1;
   display: flex;
@@ -18,7 +18,7 @@
   background: var(--color-surface);
 }
 
-.member-header h1,
+.web-global-header h1,
 .registration-header h1 {
   display: none;
 }
@@ -29,8 +29,20 @@
 }
 
 .header-utility {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
   color: var(--color-text-muted);
   font-size: 13px;
+}
+
+.header-utility-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
 }
 
 .business-navigation {
@@ -181,8 +193,8 @@
   background: var(--color-surface);
 }
 
-.hotel-home-web-shell > .member-header,
-.school-home-web-shell > .member-header {
+.hotel-home-web-shell > .web-global-header,
+.school-home-web-shell > .web-global-header {
   height: 48px;
 }
 

@@ -207,7 +207,7 @@
     background: var(--color-surface);
   }
 
-  .member-header {
+  .web-global-header {
     grid-row: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 32px;
@@ -233,7 +233,7 @@
     display: none;
   }
 
-  .member-header h1 {
+  .web-global-header h1 {
     display: block;
     font-size: 21px;
     line-height: 1.4;

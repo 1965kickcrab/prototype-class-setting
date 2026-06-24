@@ -4,6 +4,7 @@ import { renderMemberTagChips } from "../../components/member-tag-chips.js";
 import { initTagInput } from "../../components/member-tag-input.js";
 import { createBusinessNavigation } from "../../components/navigation.js";
 import { createToast, TOAST_AUTO_DISMISS_MS } from "../../components/toast.js";
+import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { sanitizeTagList } from "../../services/member-tag-service.js";
 import { mergeMemberTagCatalog, saveRegisteredMembers } from "../../storage/member-storage.js";
 import { loadSchoolClassList } from "../../storage/class-storage.js";
@@ -68,13 +69,13 @@ function createWebMemberDetailScreen(memberDetailState) {
 
 function createHeader() {
   const header = createElement("header", {
-    className: "member-header",
+    className: "web-global-header",
     dataset: { area: "header" },
   });
 
   header.append(createElement("strong", { className: "brand-name", textContent: "다이얼독 비즈" }));
   header.append(createElement("h1", { textContent: "회원" }));
-  header.append(createElement("span", { className: "header-utility", textContent: "설정  알림  계정" }));
+  header.append(createWebHeaderActions());
 
   return header;
 }
