@@ -166,8 +166,13 @@ function normalizeStoredSchoolReservation(reservation) {
     gender: String(reservation?.gender || "").trim(),
     neuteredStatus: String(reservation?.neuteredStatus || "").trim(),
     memo: String(reservation?.memo || "").trim(),
+    status: normalizeReservationStatus(reservation?.status),
     totalReservableCount: Number(reservation?.totalReservableCount) || 0,
   });
+}
+
+function normalizeReservationStatus(status) {
+  return status === "취소" ? "취소" : "예약";
 }
 
 function createMembersFromReservations(reservations) {
@@ -226,9 +231,9 @@ function createPetFromReservation(reservation, petId) {
     weight: reservation.weight || "",
     gender: reservation.gender || "",
     neuteredStatus: reservation.neuteredStatus || "",
-    remainingCountByType: { school: totalReservableCount, daycare: 0, hoteling: 0, oneway: 0, roundtrip: 0 },
-    totalReservableCountByType: { school: totalReservableCount, daycare: 0, hoteling: 0, oneway: 0, roundtrip: 0 },
-    totalReservedCountByType: { school: 0, daycare: 0, hoteling: 0, oneway: 0, roundtrip: 0 },
+    remainingCountByType: { school: totalReservableCount, daycare: 0, oneway: 0, roundtrip: 0 },
+    totalReservableCountByType: { school: totalReservableCount, daycare: 0, oneway: 0, roundtrip: 0 },
+    totalReservedCountByType: { school: 0, daycare: 0, oneway: 0, roundtrip: 0 },
     ticketHistories: createTicketHistories(reservation, totalReservableCount, 0),
     petTags: Array.isArray(reservation.petTags) ? [...reservation.petTags] : [],
   };

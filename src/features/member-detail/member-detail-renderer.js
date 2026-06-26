@@ -95,8 +95,6 @@ function createNavigation() {
       selected: label === "회원",
       href: label === "대시보드" || label === "유치원"
         ? "./index.html"
-        : label === "호텔링"
-          ? "./hotel-home.html"
         : label === "알림장"
           ? "./report.html"
           : label === "회원"

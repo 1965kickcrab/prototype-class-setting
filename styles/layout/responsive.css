@@ -1,12 +1,10 @@
 @media (min-width: 431px) {
-  .hotel-home-web-shell,
   .school-home-web-shell {
     display: block;
   }
 }
 
 @media (max-width: 430px) {
-  .hotel-home-app-shell,
   .school-home-app-shell {
     display: block;
   }

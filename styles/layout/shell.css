@@ -151,14 +151,11 @@
   display: none;
 }
 
-.hotel-home-web-shell,
-.hotel-home-app-shell,
 .school-home-web-shell,
 .school-home-app-shell {
   display: none;
 }
 
-.hotel-home-web-shell,
 .school-home-web-shell {
   min-height: 100vh;
   background: var(--color-page-subtle);
@@ -182,7 +179,6 @@
   flex-direction: column;
 }
 
-.hotel-web-header,
 .school-web-header {
   height: 48px;
   display: flex;
@@ -193,71 +189,51 @@
   background: var(--color-surface);
 }
 
-.hotel-home-web-shell > .web-global-header,
 .school-home-web-shell > .web-global-header {
   height: 48px;
 }
 
-.hotel-brand,
 .school-brand,
-.hotel-header-utility,
 .school-web-utilities,
-.hotel-app-header-left,
-.hotel-app-header-title-row,
-.hotel-app-header-actions,
 .school-app-header-row,
 .school-app-nav-left,
 .school-app-nav-title,
 .school-app-nav-actions,
-.hotel-calendar-controls,
 .school-calendar-controls,
-.hotel-detail-actions,
-.hotel-web-title-group,
 .school-web-title-group,
 .school-web-title-actions {
   display: flex;
   align-items: center;
 }
 
-.hotel-brand,
 .school-brand {
   gap: var(--space-2);
 }
 
-.hotel-brand-logo,
 .school-brand-logo {
   width: 28px;
   height: 28px;
 }
 
-.hotel-brand-text,
 .school-brand-text {
   width: 103px;
   height: 22px;
 }
 
-.hotel-header-utility,
 .school-web-utilities {
   gap: var(--space-4);
 }
 
-.hotel-home-web-layout,
 .school-home-web-layout {
   min-height: calc(100vh - 48px);
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
 }
 
-.hotel-app-header-title span {
-  color: var(--color-text-secondary);
-}
-
-.content[data-screen="hotelHome"],
 .content[data-screen="schoolHome"] {
   padding: 0 20px 32px;
 }
 
-.hotel-web-title-bar,
 .school-web-title-bar {
   height: 64px;
   display: flex;
@@ -265,25 +241,19 @@
   justify-content: space-between;
 }
 
-.hotel-web-title-group,
 .school-web-title-group {
   gap: 8px;
 }
 
-.hotel-web-title-bar h1,
 .school-web-title-bar h1 {
   font-size: 28px;
 }
 
-.hotel-capacity-button,
 .school-capacity-button {
   min-width: 85px;
   height: 32px;
 }
 
-.hotel-calendar-panel.web,
-.hotel-detail-panel,
-.hotel-app-reservation-section,
 .school-calendar-panel,
 .school-reservation-panel,
 .school-app-sheet {
@@ -291,20 +261,16 @@
   border-radius: 12px;
 }
 
-.hotel-calendar-header.web,
-.hotel-calendar-header.app,
 .school-calendar-header.web {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.hotel-calendar-controls,
 .school-calendar-controls {
   gap: 12px;
 }
 
-.hotel-today-button,
 .school-calendar-today-button {
   height: 28px;
   border: 1px solid var(--color-border-subtle);
@@ -312,7 +278,6 @@
   background: var(--color-surface);
 }
 
-.hotel-app-mode-menu,
 .school-app-mode-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -328,7 +293,6 @@
   background: var(--color-surface);
 }
 
-.hotel-app-mode-option,
 .school-app-mode-option {
   height: 36px;
   border: 0;
@@ -337,7 +301,6 @@
   text-align: left;
 }
 
-.hotel-app-mode-option.is-selected,
 .school-app-mode-option.is-selected {
   background: var(--color-primary-soft);
   color: var(--color-primary);

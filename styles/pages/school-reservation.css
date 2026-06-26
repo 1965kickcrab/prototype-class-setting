@@ -364,15 +364,77 @@
 }
 
 .school-reservation-detail-info-box {
+  width: 100%;
   min-height: 48px;
   display: flex;
   align-items: center;
+  border: 0;
   border-radius: 8px;
   background: #f5f5f5;
   color: #333333;
   padding: 0 14px;
   font-size: 16px;
   line-height: 22px;
+  text-align: left;
+}
+
+.school-reservation-class-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.school-reservation-class-sheet {
+  width: min(100%, 430px);
+  max-height: 70vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px 18px 0 0;
+  background: #ffffff;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+}
+
+.school-reservation-class-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.school-reservation-class-sheet-header strong {
+  font-size: 18px;
+}
+
+.school-reservation-class-sheet-close {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+}
+
+.school-reservation-class-sheet-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.school-reservation-class-sheet-option {
+  min-height: 48px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-light);
+  background: #ffffff;
+  color: #333333;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.school-reservation-class-sheet-option.is-selected {
+  color: var(--color-primary);
 }
 
 .school-reservation-detail-tag-list {

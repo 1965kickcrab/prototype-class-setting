@@ -1,5 +1,4 @@
 import { loadSchoolClassList } from "../storage/class-storage.js";
-import { getHotelHomeReservations } from "../storage/hotel-home-storage.js";
 import { getMemberPetRows, getStoredMembers } from "../storage/member-storage.js";
 import { getSchoolHomeReservations } from "../storage/school-home-storage.js";
 
@@ -340,19 +339,6 @@ function getTodayReservedPetKeys(memberPets, dateKey) {
       }
     });
 
-  const memberPetKeyByProfile = new Map();
-  memberPets.forEach((memberPet) => {
-    memberPetKeyByProfile.set(createPetProfileKey(memberPet), `${memberPet.memberId}:${memberPet.petId}`);
-  });
-
-  getHotelHomeReservations()
-    .filter((reservation) => reservation.date === dateKey)
-    .forEach((reservation) => {
-      const memberPetKey = memberPetKeyByProfile.get(createPetProfileKey(reservation));
-      if (memberPetKey) {
-        reservedPetKeys.add(memberPetKey);
-      }
-    });
 
   return reservedPetKeys;
 }
@@ -367,16 +353,6 @@ function getTodaySentReportPetKeys(dateKey) {
   }
 }
 
-function createPetProfileKey(value) {
-  return [
-    normalizeLookupText(value?.petName || value?.dogName),
-    normalizeLookupText(value?.breed),
-  ].join(":");
-}
-
-function normalizeLookupText(value) {
-  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-}
 
 function setText(element, value) {
   if (element) {

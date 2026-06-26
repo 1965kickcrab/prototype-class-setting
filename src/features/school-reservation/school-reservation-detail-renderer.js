@@ -1,7 +1,10 @@
 import { getSchoolHomeReservations, loadStoredSchoolReservations, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
+import { loadSchoolClassList } from "../../storage/class-storage.js";
 import { createElement } from "../../utils/dom.js";
 
 const DEFAULT_DOG_PROFILE_IMAGE = "assets/images/defaultProfile_dog.svg";
+let isClassBottomSheetOpen = false;
+let isReservationCancelAlertOpen = false;
 
 const SAMPLE_RESERVATION = {
   id: "school-reservation-sample",
@@ -30,6 +33,12 @@ function createReservationDetailScreen(reservation) {
 
   screen.append(createHeader(reservation));
   screen.append(createDetailContent(reservation));
+  if (isReservationCancelAlertOpen) {
+    screen.append(createReservationCancelAlert(reservation));
+  }
+  if (isClassBottomSheetOpen) {
+    screen.append(createClassBottomSheet(reservation));
+  }
   return screen;
 }
 
@@ -52,7 +61,8 @@ function createHeader(reservation) {
     dataset: { action: "cancelReservation", entityId: reservation.id },
   });
   cancelButton.addEventListener("click", () => {
-    cancelReservation(reservation.id);
+    isReservationCancelAlertOpen = true;
+    renderSchoolReservationDetail(document.querySelector("#app"));
   });
 
   header.append(backButton);
@@ -70,7 +80,7 @@ function createDetailContent(reservation) {
 
   const classSection = createElement("section", { className: "school-reservation-detail-section" });
   classSection.append(createElement("h2", { textContent: "클래스" }));
-  classSection.append(createInfoBox(reservation.className || "-", "class"));
+  classSection.append(createInfoBox(reservation.className || "-", "class", reservation));
   content.append(classSection);
 
   const dateSection = createElement("section", { className: "school-reservation-detail-section" });
@@ -105,12 +115,21 @@ function createPetSummary(reservation) {
   return summary;
 }
 
-function createInfoBox(text, type) {
-  return createElement("div", {
+function createInfoBox(text, type, reservation = null) {
+  const isClassField = type === "class" && reservation;
+  const infoBox = createElement(isClassField ? "button" : "div", {
     className: "school-reservation-detail-info-box",
     textContent: text || "-",
     dataset: { field: type },
   });
+  if (isClassField) {
+    infoBox.type = "button";
+    infoBox.addEventListener("click", () => {
+      isClassBottomSheetOpen = true;
+      renderSchoolReservationDetail(document.querySelector("#app"));
+    });
+  }
+  return infoBox;
 }
 
 function createTagList(tags) {
@@ -137,6 +156,115 @@ function cancelReservation(reservationId) {
     saveStoredSchoolReservations(nextReservations);
   }
   window.location.href = "./index.html";
+}
+
+function createClassBottomSheet(reservation) {
+  const overlay = createElement("section", {
+    className: "school-reservation-class-sheet-overlay",
+    dataset: { area: "reservationClassSheet", state: "open" },
+  });
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeClassBottomSheet();
+    }
+  });
+
+  const sheet = createElement("div", { className: "school-reservation-class-sheet" });
+  const header = createElement("div", { className: "school-reservation-class-sheet-header" });
+  header.append(createElement("strong", { textContent: "클래스 변경" }));
+  const closeButton = createElement("button", {
+    className: "school-reservation-class-sheet-close",
+    type: "button",
+    textContent: "닫기",
+    dataset: { action: "closeReservationClassSheet" },
+  });
+  closeButton.addEventListener("click", closeClassBottomSheet);
+  header.append(closeButton);
+  sheet.append(header);
+
+  const list = createElement("div", { className: "school-reservation-class-sheet-list" });
+  loadSchoolClassList().forEach((schoolClass) => {
+    const isSelected = reservation.classId === schoolClass.id;
+    const option = createElement("button", {
+      className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
+      type: "button",
+      textContent: schoolClass.name || "-",
+      dataset: {
+        action: "selectReservationClass",
+        classId: schoolClass.id,
+        state: isSelected ? "selected" : "idle",
+      },
+    });
+    option.addEventListener("click", () => {
+      updateReservationClass(reservation.id, schoolClass);
+    });
+    list.append(option);
+  });
+  sheet.append(list);
+  overlay.append(sheet);
+  return overlay;
+}
+
+function closeClassBottomSheet() {
+  isClassBottomSheetOpen = false;
+  renderSchoolReservationDetail(document.querySelector("#app"));
+}
+
+function updateReservationClass(reservationId, schoolClass) {
+  const reservations = getSchoolHomeReservations().map((reservation) => {
+    if (reservation.id !== reservationId) {
+      return reservation;
+    }
+
+    return {
+      ...reservation,
+      classId: schoolClass.id,
+      className: schoolClass.name || "",
+    };
+  });
+  saveStoredSchoolReservations(reservations);
+  isClassBottomSheetOpen = false;
+  renderSchoolReservationDetail(document.querySelector("#app"));
+}
+
+function createReservationCancelAlert(reservation) {
+  const overlay = createElement("section", {
+    className: "school-reservation-alert-overlay",
+    dataset: { area: "reservationCancelAlert", modal: "reservationCancelAlert", state: "open" },
+  });
+  const alert = createElement("div", { className: "school-reservation-alert" });
+  alert.append(createElement("p", {
+    className: "school-reservation-alert-body",
+    textContent: "예약을 삭제하시겠습니까?\n삭제된 예약은 복구할 수 없습니다.",
+  }));
+
+  const actions = createElement("div", { className: "school-reservation-alert-actions" });
+  const closeButton = createElement("button", {
+    className: "school-reservation-alert-close-button",
+    type: "button",
+    textContent: "닫기",
+    dataset: { action: "closeReservationCancelAlert" },
+  });
+  closeButton.addEventListener("click", () => {
+    isReservationCancelAlertOpen = false;
+    renderSchoolReservationDetail(document.querySelector("#app"));
+  });
+
+  const confirmButton = createElement("button", {
+    className: "school-reservation-alert-confirm-button",
+    type: "button",
+    textContent: "예약 취소",
+    dataset: { action: "confirmReservationCancel" },
+  });
+  confirmButton.addEventListener("click", () => {
+    isReservationCancelAlertOpen = false;
+    cancelReservation(reservation.id);
+  });
+
+  actions.append(closeButton, confirmButton);
+  alert.append(actions);
+  overlay.append(alert);
+  return overlay;
 }
 
 function getReservationTags(reservation) {

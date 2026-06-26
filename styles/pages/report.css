@@ -352,25 +352,61 @@
 .web-report-filter-field {
   min-width: 180px;
   flex: 0 1 260px;
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.web-report-filter-label {
-  flex: 0 0 auto;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .web-report-filter-input {
   min-width: 0;
   height: 36px;
-  border: 1px solid var(--color-border-light);
-  border-radius: 6px;
+  border: 0;
   background: #ffffff;
-  padding: 0 12px;
+}
+
+.web-report-filter-menu-button {
+  width: 100%;
+  height: 36px;
+  border: 0;
+  background: #ffffff;
+  color: var(--color-text);
+  text-align: left;
+  font-weight: 700;
+}
+
+.web-report-filter-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.web-report-filter-menu-option {
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0 8px;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.web-report-filter-menu-option.is-selected {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 800;
 }
 
 .web-report-reset-filter-button {
@@ -479,7 +515,7 @@
   gap: 5px;
   color: var(--color-text);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .web-report-section-title strong {

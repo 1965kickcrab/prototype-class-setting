@@ -9,6 +9,7 @@ const MENU_FOLD_OPEN_ICON_PATH = "assets/icons/menuFold_fold.svg";
 
 const webReportState = {
   isFilterPanelOpen: false,
+  isPetFilterMenuOpen: false,
   petFilter: "",
   dateFilter: "",
 };
@@ -25,12 +26,12 @@ function createAppReportScreen(entries) {
     dataset: { screen: "report", state: entries.length ? "list" : "empty" },
   });
 
-  screen.append(createWebReportShell(filteredEntries));
+  screen.append(createWebReportShell(filteredEntries, entries));
   screen.append(createAppReportShell(entries));
   return screen;
 }
 
-function createWebReportShell(entries) {
+function createWebReportShell(entries, allEntries) {
   const shell = createElement("section", {
     className: "web-report-shell",
     dataset: { area: "reportWeb", platform: "web" },
@@ -39,7 +40,7 @@ function createWebReportShell(entries) {
 
   const layout = createElement("div", { className: "web-report-layout" });
   layout.append(createReportNavigation());
-  layout.append(createWebReportContent(entries));
+  layout.append(createWebReportContent(entries, allEntries));
   shell.append(layout);
   return shell;
 }
@@ -85,7 +86,7 @@ function createReportNavigation() {
     items: [
       { label: "대시보드", href: "./index.html" },
       { label: "유치원", href: "./index.html" },
-      { label: "호텔링", href: "./hotel-home.html" },
+      { label: "호텔링" },
       { label: "알림장", selected: true, href: "./report.html" },
       { label: "회원", href: "./member-home.html" },
       { label: "이용권" },
@@ -93,7 +94,7 @@ function createReportNavigation() {
   });
 }
 
-function createWebReportContent(entries) {
+function createWebReportContent(entries, allEntries) {
   const content = createElement("section", {
     className: "web-report-content",
     dataset: { area: "content", feature: "report", platform: "web", state: entries.length ? "list" : "empty" },
@@ -118,7 +119,7 @@ function createWebReportContent(entries) {
   content.append(titleBar);
   content.append(createWebReportToolbar());
   if (webReportState.isFilterPanelOpen) {
-    content.append(createWebReportFilterPanel());
+    content.append(createWebReportFilterPanel(allEntries));
   }
   content.append(entries.length ? createWebReportList(entries) : createWebReportEmptyState());
   return content;
@@ -149,13 +150,16 @@ function createWebReportFilterToggle() {
 
   button.addEventListener("click", () => {
     webReportState.isFilterPanelOpen = !webReportState.isFilterPanelOpen;
+    if (!webReportState.isFilterPanelOpen) {
+      webReportState.isPetFilterMenuOpen = false;
+    }
     rerenderAppReport();
   });
 
   return button;
 }
 
-function createWebReportFilterPanel() {
+function createWebReportFilterPanel(entries) {
   const panel = createElement("div", {
     className: "filter-detail-panel web-report-filter-panel",
     dataset: { area: "filterDetail", feature: "report" },
@@ -165,7 +169,7 @@ function createWebReportFilterPanel() {
     className: "filter-fields web-report-filter-fields",
     dataset: { area: "reportFilterFields" },
   });
-  fields.append(createWebReportPetFilterField());
+  fields.append(createWebReportPetFilterField(entries));
   fields.append(createWebReportDateFilterField());
 
   panel.append(fields);
@@ -173,33 +177,39 @@ function createWebReportFilterPanel() {
   return panel;
 }
 
-function createWebReportPetFilterField() {
-  const field = createElement("label", {
+function createWebReportPetFilterField(entries) {
+  const field = createElement("div", {
     className: "filter-field web-report-filter-field",
     dataset: { field: "reportPet" },
   });
-  field.append(createElement("span", { className: "web-report-filter-label", textContent: "반려견" }));
-  const input = createElement("input", {
-    className: "form-input web-report-filter-input",
-    type: "search",
-    value: webReportState.petFilter,
-    placeholder: "반려견 이름 또는 견종",
-    dataset: { field: "reportPetFilter" },
+  const button = createElement("button", {
+    className: "web-report-filter-menu-button",
+    type: "button",
+    textContent: getSelectedPetFilterLabel(),
+    dataset: {
+      action: "toggleReportPetFilter",
+      state: webReportState.isPetFilterMenuOpen ? "open" : "closed",
+    },
   });
-  input.addEventListener("input", (event) => {
-    webReportState.petFilter = event.target.value;
-  });
-  input.addEventListener("change", (event) => {
-    webReportState.petFilter = event.target.value;
+
+  button.addEventListener("click", () => {
+    webReportState.isPetFilterMenuOpen = !webReportState.isPetFilterMenuOpen;
     rerenderAppReport();
   });
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      webReportState.petFilter = event.target.value;
-      rerenderAppReport();
-    }
-  });
-  field.append(input);
+
+  field.append(button);
+
+  if (webReportState.isPetFilterMenuOpen) {
+    const menu = createElement("div", {
+      className: "web-report-filter-menu",
+      dataset: { area: "reportPetFilterOptions" },
+    });
+    getPetFilterOptions(entries).forEach((option) => {
+      menu.append(createPetFilterOption(option));
+    });
+    field.append(menu);
+  }
+
   return field;
 }
 
@@ -208,7 +218,6 @@ function createWebReportDateFilterField() {
     className: "filter-field web-report-filter-field",
     dataset: { field: "reportDate" },
   });
-  field.append(createElement("span", { className: "web-report-filter-label", textContent: "날짜" }));
   const input = createElement("input", {
     className: "form-input web-report-filter-input",
     type: "date",
@@ -217,6 +226,7 @@ function createWebReportDateFilterField() {
   });
   input.addEventListener("change", (event) => {
     webReportState.dateFilter = event.target.value;
+    webReportState.isPetFilterMenuOpen = false;
     rerenderAppReport();
   });
   field.append(input);
@@ -233,6 +243,7 @@ function createWebReportResetFilterButton() {
   button.addEventListener("click", () => {
     webReportState.petFilter = "";
     webReportState.dateFilter = "";
+    webReportState.isPetFilterMenuOpen = false;
     rerenderAppReport();
   });
   return button;
@@ -448,14 +459,56 @@ function filterWebReportEntries(entries) {
   const dateFilter = normalizeDateFilter(webReportState.dateFilter);
 
   return entries.filter((entry) => {
-    const matchesPet = !petFilter || normalizeFilterText([
-      entry.petName,
-      entry.name,
-      entry.breed,
-    ].join(" ")).includes(petFilter);
+    const matchesPet = !petFilter || normalizeFilterText(getEntryPetName(entry)) === petFilter;
     const matchesDate = !dateFilter || getEntryDateKeys(entry).includes(dateFilter);
     return matchesPet && matchesDate;
   });
+}
+
+
+function getPetFilterOptions(entries) {
+  const options = [{ label: "전체", value: "" }];
+  const seenPetNames = new Set();
+
+  entries.forEach((entry) => {
+    const petName = getEntryPetName(entry);
+    const normalizedPetName = normalizeFilterText(petName);
+    if (!normalizedPetName || seenPetNames.has(normalizedPetName)) {
+      return;
+    }
+
+    seenPetNames.add(normalizedPetName);
+    options.push({ label: petName, value: petName });
+  });
+
+  return options;
+}
+
+function createPetFilterOption(option) {
+  const isSelected = normalizeFilterText(webReportState.petFilter) === normalizeFilterText(option.value);
+  const button = createElement("button", {
+    className: isSelected ? "web-report-filter-menu-option is-selected" : "web-report-filter-menu-option",
+    type: "button",
+    textContent: option.label,
+    dataset: {
+      action: "selectReportPetFilter",
+      state: isSelected ? "selected" : "idle",
+    },
+  });
+  button.addEventListener("click", () => {
+    webReportState.petFilter = option.value;
+    webReportState.isPetFilterMenuOpen = false;
+    rerenderAppReport();
+  });
+  return button;
+}
+
+function getSelectedPetFilterLabel() {
+  return webReportState.petFilter || "전체";
+}
+
+function getEntryPetName(entry) {
+  return String(entry.petName || entry.name || "").trim();
 }
 
 function getEntryDateKeys(entry) {

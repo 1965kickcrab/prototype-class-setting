@@ -25,6 +25,14 @@
   color: var(--color-primary);
 }
 
+.danger-button {
+  border: 0;
+  border-radius: var(--radius-2);
+  background: var(--color-warning);
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .icon-button {
   width: 36px;
   height: 36px;

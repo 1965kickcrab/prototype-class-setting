@@ -4,7 +4,7 @@ import { createReservationSearchFilter } from "../../components/reservation-sear
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
 import { addMemberPetToSchoolClass, getMemberPetRows } from "../../storage/member-storage.js";
-import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView } from "../../storage/school-home-storage.js";
+import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
 import {
@@ -29,6 +29,8 @@ const DAYOFF_ICON_PATH = "assets/icons/iconDayoff.svg";
 const CALENDAR_ICON_PATH = "assets/icons/iconCalendar.svg";
 const CHECK_ICON_PATH = "assets/icons/iconCheck.svg";
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const OTHER_CLASS_GROUP_ID = "__other__";
+const OTHER_CLASS_LABEL = "기타";
 const REGISTRATION_CLASS_WEEKDAYS = [
   { key: "mon", label: "월" },
   { key: "tue", label: "화" },
@@ -65,6 +67,18 @@ function createSchoolHomeScreen(schoolHomeState) {
     : createSchoolHomeAppShell(schoolHomeState));
   if (schoolHomeState.reservationRegistration?.isOpen) {
     screen.append(createReservationRegistrationModal(schoolHomeState));
+  }
+  if (schoolHomeState.isReservationCancelAlertOpen) {
+    screen.append(createReservationCancelAlert({
+      onClose: () => {
+        schoolHomeState.isReservationCancelAlertOpen = false;
+        rerender(schoolHomeState);
+      },
+      onConfirm: () => {
+        schoolHomeState.isReservationCancelAlertOpen = false;
+        cancelSelectedWebReservations(schoolHomeState);
+      },
+    }));
   }
   return screen;
 }
@@ -125,7 +139,7 @@ function createSchoolNavigation(platform) {
     items: [
       { label: "대시보드", href: "./index.html" },
       { label: "유치원", selected: true, href: "./index.html" },
-      { label: "호텔링", href: "./hotel-home.html" },
+      { label: "호텔링" },
       { label: "알림장", href: "./report.html" },
       { label: "회원", href: "./member-home.html" },
       { label: "이용권" }
@@ -292,7 +306,6 @@ function createAppHeader(schoolHomeState) {
   if (schoolHomeState.isModeMenuOpen) {
     title.append(createAppModeMenu([
       { label: "유치원", href: "./index.html", selected: true },
-      { label: "호텔", href: "./hotel-home.html" },
     ]));
   }
   left.append(title);
@@ -431,11 +444,12 @@ function createCalendarClassSummary(schoolHomeState, reservations) {
   });
 
   if (schoolHomeState.selectedSchoolClassId) {
-    const selectedClassName = getClassNameById(schoolHomeState.selectedSchoolClassId);
+    const hasClassDefinition = hasSchoolClassDefinition(schoolHomeState.selectedSchoolClassId);
     summary.append(createCalendarClassCountBadge({
-      name: selectedClassName,
+      name: hasClassDefinition ? getClassNameById(schoolHomeState.selectedSchoolClassId) : OTHER_CLASS_LABEL,
       count: reservations.length,
-      isClosed: isClassCapacityClosed(schoolHomeState.selectedSchoolClassId, reservations.length),
+      hasClassDefinition,
+      isClosed: hasClassDefinition && isClassCapacityClosed(schoolHomeState.selectedSchoolClassId, reservations.length),
     }));
     return summary;
   }
@@ -450,7 +464,9 @@ function createCalendarClassCountBadge(classGroup) {
   const badge = createElement("span", {
     className: classGroup.isClosed ? "calendar-class-count is-closed" : "calendar-class-count",
   });
-  badge.append(createElement("span", { textContent: `${classGroup.name} ${classGroup.count}` }));
+  badge.append(createElement("span", {
+    textContent: `${classGroup.name} ${classGroup.count}`,
+  }));
   return badge;
 }
 
@@ -508,13 +524,20 @@ function createSchoolReservationPanel(schoolHomeState, platform) {
       textContent: summary.isHoliday ? "휴무" : `예약 ${summary.reservationCount}`,
     }));
     header.append(title);
+    const actions = createElement("div", { className: "school-reservation-panel-actions" });
+    actions.append(createHideCanceledReservationsToggle(schoolHomeState));
     const cancelButton = createElement("button", {
       className: "school-reservation-cancel-button",
       type: "button",
       textContent: "예약 취소",
     });
-    cancelButton.disabled = summary.reservations.length === 0;
-    header.append(cancelButton);
+    cancelButton.disabled = getCancelableSelectedReservationIds(schoolHomeState).length === 0;
+    cancelButton.addEventListener("click", () => {
+      schoolHomeState.isReservationCancelAlertOpen = true;
+      rerender(schoolHomeState);
+    });
+    actions.append(cancelButton);
+    header.append(actions);
     panel.append(header);
     panel.append(createWebReservationBody(schoolHomeState, summary));
     return panel;
@@ -528,6 +551,16 @@ function createSchoolReservationPanel(schoolHomeState, platform) {
     textContent: summary.isHoliday ? "휴무" : `예약 ${summary.reservationCount}`,
   }));
   content.append(title);
+  const appCancelButton = createElement("button", {
+    className: "school-reservation-cancel-button",
+    type: "button",
+    textContent: "예약 취소",
+  });
+  appCancelButton.addEventListener("click", () => {
+    schoolHomeState.isReservationCancelAlertOpen = true;
+    rerender(schoolHomeState);
+  });
+  content.append(appCancelButton);
   const activeClassId = getActiveAppClassTabId(schoolHomeState, summary);
   content.append(createAppClassTabs(schoolHomeState, summary, activeClassId));
   content.append(createAppReservationBody(schoolHomeState, summary, getAppReservationsForActiveClass(summary, activeClassId)));
@@ -536,11 +569,14 @@ function createSchoolReservationPanel(schoolHomeState, platform) {
 }
 
 function createWebReservationBody(schoolHomeState, summary) {
+  const visibleReservations = getVisibleWebReservations(schoolHomeState, summary.reservations);
+  const cancelableReservations = visibleReservations.filter((reservation) => !isCanceledReservation(reservation));
+
   if (summary.isHoliday && !summary.hasReservations) {
     return createHolidayEmptyState("일요일은 휴무입니다.", "휴무 확인용 상태입니다.");
   }
 
-  if (summary.reservations.length === 0 && hasActiveReservationFilters(schoolHomeState)) {
+  if (visibleReservations.length === 0 && hasActiveReservationFilters(schoolHomeState)) {
     return createEmptyStateElement({
       title: "조건과 일치하는 결과가 없습니다.",
     });
@@ -550,12 +586,12 @@ function createWebReservationBody(schoolHomeState, summary) {
   const table = createElement("div", { className: "school-reservation-table" });
   const header = createElement("div", { className: "school-reservation-table-row is-header" });
   const allCheckbox = createElement("input", { type: "checkbox" });
-  allCheckbox.disabled = summary.reservations.length === 0;
-  allCheckbox.checked = summary.reservations.length > 0 && summary.reservations.every((reservation) => {
+  allCheckbox.disabled = cancelableReservations.length === 0;
+  allCheckbox.checked = cancelableReservations.length > 0 && cancelableReservations.every((reservation) => {
     return schoolHomeState.selectedReservationIds.includes(reservation.id);
   });
   allCheckbox.addEventListener("change", () => {
-    schoolHomeState.selectedReservationIds = allCheckbox.checked ? summary.reservations.map((reservation) => reservation.id) : [];
+    schoolHomeState.selectedReservationIds = allCheckbox.checked ? cancelableReservations.map((reservation) => reservation.id) : [];
     rerender(schoolHomeState);
   });
   const checkboxCell = createElement("label", { className: "school-reservation-checkbox-cell" });
@@ -566,10 +602,10 @@ function createWebReservationBody(schoolHomeState, summary) {
   });
   table.append(header);
 
-  if (summary.reservations.length === 0) {
+  if (visibleReservations.length === 0) {
     table.append(createWebReservationPlaceholderRow(hasActiveReservationFilters(schoolHomeState)));
   } else {
-    summary.reservations.forEach((reservation) => {
+    visibleReservations.forEach((reservation) => {
       table.append(createWebReservationRow(schoolHomeState, reservation));
     });
   }
@@ -590,38 +626,204 @@ function createWebReservationPlaceholderRow(isFilteredEmpty = false) {
   return row;
 }
 
-function createWebReservationRow(schoolHomeState, reservation) {
-  const row = createElement("div", {
-    className: "school-reservation-table-row",
+function createHideCanceledReservationsToggle(schoolHomeState) {
+  const label = createElement("label", {
+    className: "school-reservation-hide-canceled-toggle",
     dataset: {
-      action: "openReservationDetail",
+      action: "toggleCanceledReservations",
+      state: schoolHomeState.shouldHideCanceledReservations ? "checked" : "unchecked",
+    },
+  });
+  const checkbox = createElement("input", {
+    type: "checkbox",
+    dataset: { field: "hideCanceledReservations" },
+  });
+  checkbox.checked = schoolHomeState.shouldHideCanceledReservations;
+  checkbox.addEventListener("change", () => {
+    schoolHomeState.shouldHideCanceledReservations = checkbox.checked;
+    schoolHomeState.selectedReservationIds = getCancelableSelectedReservationIds(schoolHomeState);
+    rerender(schoolHomeState);
+  });
+  label.append(checkbox);
+  label.append(createElement("span", { textContent: "취소 내역 숨기기" }));
+  return label;
+}
+
+function getVisibleWebReservations(schoolHomeState, reservations) {
+  if (!schoolHomeState.shouldHideCanceledReservations) {
+    return reservations;
+  }
+
+  return reservations.filter((reservation) => !isCanceledReservation(reservation));
+}
+
+function getCancelableSelectedReservationIds(schoolHomeState) {
+  const selectedReservationIds = new Set(schoolHomeState.selectedReservationIds || []);
+  return (schoolHomeState.reservations || [])
+    .filter((reservation) => selectedReservationIds.has(reservation.id) && !isCanceledReservation(reservation))
+    .map((reservation) => reservation.id);
+}
+
+function cancelSelectedWebReservations(schoolHomeState) {
+  const cancelableReservationIds = new Set(getCancelableSelectedReservationIds(schoolHomeState));
+  if (cancelableReservationIds.size === 0) {
+    return;
+  }
+
+  schoolHomeState.reservations = (schoolHomeState.reservations || []).map((reservation) => {
+    if (!cancelableReservationIds.has(reservation.id)) {
+      return reservation;
+    }
+
+    return {
+      ...reservation,
+      status: "취소",
+    };
+  });
+  schoolHomeState.selectedReservationIds = [];
+  saveStoredSchoolReservations(schoolHomeState.reservations);
+  rerender(schoolHomeState);
+}
+
+function isCanceledReservation(reservation) {
+  return reservation?.status === "취소";
+}
+
+function createReservationCancelAlert({ onClose, onConfirm }) {
+  const overlay = createElement("section", {
+    className: "school-reservation-alert-overlay",
+    dataset: { area: "reservationCancelAlert", modal: "reservationCancelAlert", state: "open" },
+  });
+  const alert = createElement("div", { className: "school-reservation-alert" });
+  alert.append(createElement("p", {
+    className: "school-reservation-alert-body",
+    textContent: "예약을 삭제하시겠습니까?\n삭제된 예약은 복구할 수 없습니다.",
+  }));
+
+  const actions = createElement("div", { className: "school-reservation-alert-actions" });
+  const closeButton = createElement("button", {
+    className: "school-reservation-alert-close-button",
+    type: "button",
+    textContent: "닫기",
+    dataset: { action: "closeReservationCancelAlert" },
+  });
+  closeButton.addEventListener("click", onClose);
+
+  const confirmButton = createElement("button", {
+    className: "school-reservation-alert-confirm-button",
+    type: "button",
+    textContent: "예약 취소",
+    dataset: { action: "confirmReservationCancel" },
+  });
+  confirmButton.addEventListener("click", onConfirm);
+
+  actions.append(closeButton, confirmButton);
+  alert.append(actions);
+  overlay.append(alert);
+  return overlay;
+}
+
+function createWebReservationRow(schoolHomeState, reservation) {
+  const isCanceled = isCanceledReservation(reservation);
+  const row = createElement("div", {
+    className: isCanceled ? "school-reservation-table-row is-canceled" : "school-reservation-table-row",
+    dataset: {
+      action: "selectReservationRow",
       entityId: reservation.id,
-      state: schoolHomeState.selectedReservationIds.includes(reservation.id) ? "selected" : "idle",
+      state: isCanceled ? "canceled" : schoolHomeState.selectedReservationIds.includes(reservation.id) ? "selected" : "idle",
     },
   });
   const checkbox = createElement("input", { type: "checkbox" });
-  checkbox.checked = schoolHomeState.selectedReservationIds.includes(reservation.id);
-  checkbox.addEventListener("click", (event) => {
-    event.stopPropagation();
-  });
-  checkbox.addEventListener("change", () => {
-    schoolHomeState.selectedReservationIds = checkbox.checked
-      ? [...schoolHomeState.selectedReservationIds, reservation.id]
-      : schoolHomeState.selectedReservationIds.filter((reservationId) => reservationId !== reservation.id);
-    rerender(schoolHomeState);
-  });
-  row.addEventListener("click", () => {
-    window.location.href = `./school-reservation-detail.html?id=${encodeURIComponent(reservation.id)}`;
-  });
   const checkboxCell = createElement("label", { className: "school-reservation-checkbox-cell" });
-  checkboxCell.append(checkbox);
+  if (!isCanceled) {
+    checkbox.checked = schoolHomeState.selectedReservationIds.includes(reservation.id);
+    checkbox.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+    checkbox.addEventListener("change", () => {
+      schoolHomeState.selectedReservationIds = checkbox.checked
+        ? [...schoolHomeState.selectedReservationIds, reservation.id]
+        : schoolHomeState.selectedReservationIds.filter((reservationId) => reservationId !== reservation.id);
+      rerender(schoolHomeState);
+    });
+    checkboxCell.append(checkbox);
+  }
   row.append(checkboxCell);
   row.append(createElement("span", { className: "school-reservation-status", textContent: reservation.status }));
-  row.append(createElement("span", { className: "school-reservation-class", textContent: getReservationClassName(reservation) }));
+  row.append(createWebReservationClassMenu(schoolHomeState, reservation));
   row.append(createElement("span", { textContent: reservation.petName }));
   row.append(createElement("span", { textContent: reservation.breed }));
   row.append(createElement("span", { textContent: reservation.guardianName }));
   return row;
+}
+
+function createWebReservationClassMenu(schoolHomeState, reservation) {
+  const wrapper = createElement("span", {
+    className: "school-reservation-class-menu",
+    dataset: { entityId: reservation.id, state: schoolHomeState.activeClassMenuReservationId === reservation.id ? "open" : "closed" },
+  });
+  const button = createElement("button", {
+    className: "school-reservation-class",
+    type: "button",
+    textContent: getReservationClassName(reservation),
+    dataset: { action: "openReservationClassMenu", entityId: reservation.id },
+  });
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    schoolHomeState.activeClassMenuReservationId = schoolHomeState.activeClassMenuReservationId === reservation.id ? "" : reservation.id;
+    rerender(schoolHomeState);
+  });
+  wrapper.append(button);
+
+  if (schoolHomeState.activeClassMenuReservationId === reservation.id) {
+    const menu = createElement("div", {
+      className: "school-reservation-class-options",
+      dataset: { area: "reservationClassOptions", entityId: reservation.id },
+    });
+    loadSchoolClassList().forEach((schoolClass) => {
+      menu.append(createWebReservationClassOption(schoolHomeState, reservation, schoolClass));
+    });
+    wrapper.append(menu);
+  }
+
+  return wrapper;
+}
+
+function createWebReservationClassOption(schoolHomeState, reservation, schoolClass) {
+  const isSelected = reservation.classId === schoolClass.id;
+  const button = createElement("button", {
+    className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
+    type: "button",
+    textContent: schoolClass.name || "-",
+    dataset: {
+      action: "selectReservationClass",
+      entityId: reservation.id,
+      classId: schoolClass.id,
+      state: isSelected ? "selected" : "idle",
+    },
+  });
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    updateReservationClass(schoolHomeState, reservation.id, schoolClass);
+  });
+  return button;
+}
+
+function updateReservationClass(schoolHomeState, reservationId, schoolClass) {
+  schoolHomeState.reservations = (schoolHomeState.reservations || []).map((reservation) => {
+    if (reservation.id !== reservationId) {
+      return reservation;
+    }
+
+    return {
+      ...reservation,
+      classId: schoolClass.id,
+      className: schoolClass.name || "",
+    };
+  });
+  schoolHomeState.activeClassMenuReservationId = "";
+  saveStoredSchoolReservations(schoolHomeState.reservations);
+  rerender(schoolHomeState);
 }
 
 function createAppClassTabs(schoolHomeState, summary, activeClassId) {
@@ -708,7 +910,7 @@ function getAppReservationsForActiveClass(summary, activeClassId) {
     return summary.reservations;
   }
 
-  return summary.reservations.filter((reservation) => getReservationClassTabId(reservation) === activeClassId);
+  return summary.reservations.filter((reservation) => getReservationClassGroupId(reservation) === activeClassId);
 }
 
 function getAppClassTabs(summary) {
@@ -717,7 +919,7 @@ function getAppClassTabs(summary) {
   const countsByClassId = new Map();
 
   summary.reservations.forEach((reservation) => {
-    const classId = getReservationClassTabId(reservation);
+    const classId = getReservationClassGroupId(reservation);
     countsByClassId.set(classId, (countsByClassId.get(classId) || 0) + 1);
   });
 
@@ -739,7 +941,7 @@ function getAppClassTabs(summary) {
 
     classTabs.push({
       id: classId,
-      name: summary.reservations.find((reservation) => getReservationClassTabId(reservation) === classId)?.className || "미지정",
+      name: OTHER_CLASS_LABEL,
       count,
     });
   });
@@ -747,8 +949,9 @@ function getAppClassTabs(summary) {
   return classTabs;
 }
 
-function getReservationClassTabId(reservation) {
-  return reservation.classId || `class-name:${reservation.className || "미지정"}`;
+function getReservationClassGroupId(reservation) {
+  const classId = String(reservation?.classId || "").trim();
+  return hasSchoolClassDefinition(classId) ? classId : OTHER_CLASS_GROUP_ID;
 }
 
 function hasActiveReservationFilters(schoolHomeState) {
@@ -1427,15 +1630,18 @@ function getFilteredReservationSearchResults(schoolHomeState) {
 function getReservationClassGroups(reservations) {
   const classGroups = new Map();
   (reservations || []).forEach((reservation) => {
-    const classId = reservation.classId || "unknown";
-    const currentGroup = classGroups.get(classId) || {
-      id: classId,
+    const classId = String(reservation.classId || "").trim();
+    const groupId = getReservationClassGroupId(reservation);
+    const hasClassDefinition = groupId !== OTHER_CLASS_GROUP_ID;
+    const currentGroup = classGroups.get(groupId) || {
+      id: groupId,
       name: getReservationClassName(reservation),
       count: 0,
+      hasClassDefinition,
     };
     currentGroup.count += 1;
-    currentGroup.isClosed = isClassCapacityClosed(classId, currentGroup.count);
-    classGroups.set(classId, currentGroup);
+    currentGroup.isClosed = hasClassDefinition && isClassCapacityClosed(classId, currentGroup.count);
+    classGroups.set(groupId, currentGroup);
   });
 
   return Array.from(classGroups.values()).sort((leftGroup, rightGroup) => {
@@ -1444,6 +1650,10 @@ function getReservationClassGroups(reservations) {
 }
 
 function getReservationClassName(reservation) {
+  if (getReservationClassGroupId(reservation) === OTHER_CLASS_GROUP_ID) {
+    return OTHER_CLASS_LABEL;
+  }
+
   return reservation.className || getClassNameById(reservation.classId) || "미지정";
 }
 
@@ -1459,6 +1669,14 @@ function getClassCapacityById(classId) {
 
   const capacity = Number(loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.capacity);
   return Number.isFinite(capacity) ? capacity : 0;
+}
+
+function hasSchoolClassDefinition(classId) {
+  if (!classId || classId === "unknown") {
+    return false;
+  }
+
+  return loadSchoolClassList().some((schoolClass) => schoolClass.id === classId);
 }
 
 function getClassNameById(classId) {

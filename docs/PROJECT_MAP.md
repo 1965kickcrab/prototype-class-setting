@@ -15,7 +15,6 @@ Source of truth for audience/runtime scope: `project-profile.json`
 ### Web and Responsive Pages
 
 - `index.html`: school home calendar and capacity screen; boots `src/main.js`.
-- `hotel-home.html`: hoteling home screen; boots `src/platforms/hotel-home.js`.
 - `member-home.html`: member list/search screen; boots `src/platforms/member-home.js`.
 - `member-registration.html`: member registration screen; boots `src/platforms/member-registration.js`.
 - `member-detail.html`: member detail screen; boots `src/platforms/member-detail.js`.
@@ -83,12 +82,6 @@ Source of truth for audience/runtime scope: `project-profile.json`
 - `styles/pages/center-settings.css`: center settings shell and sidebar styles.
 - `styles/pages/business-schedule.css`: business/day-off settings content styles.
 
-### Hotel Home
-
-- `src/features/hotel-home/hotel-home-state.js`: hoteling calendar, filter, and detail-panel state rules.
-- `src/features/hotel-home/hotel-home-renderer.js`: semantic hoteling home renderer for Web and App responsive layouts.
-- `styles/pages/hotel-home.css`: hoteling home page-specific layout exceptions.
-
 ### Member Management
 
 - `src/features/member-home/member-home-state.js`: member list, filtering, and list-state rules.
@@ -137,7 +130,6 @@ Source of truth for audience/runtime scope: `project-profile.json`
 
 - `src/storage/storage-utils.js`: generic JSON localStorage helpers.
 - `src/storage/school-home-storage.js`: school reservation localStorage access and fixture fallback.
-- `src/storage/hotel-home-storage.js`: hoteling reservation localStorage access, fixture fallback, and initial view storage.
 - `src/storage/member-storage.js`: member list, member tag catalog, legacy migration, and deletion persistence.
 - `src/storage/class-storage.js`: school class list localStorage access and fixture fallback.
 - `src/features/school-reservation/school-reservation-draft.js`: reservation draft sessionStorage.

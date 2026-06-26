@@ -3,7 +3,6 @@ import { createElement } from "../../utils/dom.js";
 const BACK_ICON_PATH = "assets/icons/iconBack.svg";
 const SCHOOL_ICON_PATH = "assets/icons/menuIcon_daycare.svg";
 const SCHOOL_ACTIVE_ICON_PATH = "assets/icons/menuIcon_daycare_on.svg";
-const HOTEL_ICON_PATH = "assets/icons/menuIcon_hotel.svg";
 const CHEVRON_ICON_PATH = "assets/icons/iconChevronRight.svg";
 
 const SETTINGS_GROUPS = [
@@ -13,18 +12,8 @@ const SETTINGS_GROUPS = [
     iconPath: SCHOOL_ICON_PATH,
     activeIconPath: SCHOOL_ACTIVE_ICON_PATH,
     items: [
-      { key: "school-business", label: "영업 & 휴무", href: "./center-settings/business-schedule.html", selected: true },
+      { key: "school-business", label: "영업 & 휴무", href: "./center-settings/business-schedule.html" },
       { key: "school-class", label: "클래스", href: "./center-settings/class.html" },
-    ],
-  },
-  {
-    key: "hotel",
-    label: "호텔링",
-    iconPath: HOTEL_ICON_PATH,
-    activeIconPath: HOTEL_ICON_PATH,
-    items: [
-      { key: "hotel-business", label: "영업 & 휴무" },
-      { key: "hotel-pricing", label: "요금제" },
     ],
   },
 ];

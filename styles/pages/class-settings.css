@@ -317,8 +317,13 @@
 }
 
 .class-modal-cancel-button,
+.class-modal-delete-button,
 .class-modal-submit-button {
   min-width: 88px;
+}
+
+.class-modal-delete-button {
+  height: 32px;
 }
 
 .class-settings-app-shell.app-page-shell {

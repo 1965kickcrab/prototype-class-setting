@@ -1,12 +1,11 @@
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
-import { createSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
+import { createSchoolClass, deleteSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
 
 const BACK_ICON_PATH = "../assets/icons/iconBack.svg";
 const SCHOOL_ICON_PATH = "../assets/icons/menuIcon_daycare.svg";
 const SCHOOL_ACTIVE_ICON_PATH = "../assets/icons/menuIcon_daycare_on.svg";
-const HOTEL_ICON_PATH = "../assets/icons/menuIcon_hotel.svg";
 const CHEVRON_ICON_PATH = "../assets/icons/iconChevronRight.svg";
 const CHEVRON_RIGHT_ICON_PATH = "../assets/icons/iconChevronRight.svg";
 const CLOSE_ICON_PATH = "../assets/icons/iconClose.svg";
@@ -29,17 +28,7 @@ const SETTINGS_GROUPS = [
     activeIconPath: SCHOOL_ACTIVE_ICON_PATH,
     items: [
       { key: "school-business", label: "영업 & 휴무", href: "./business-schedule.html" },
-      { key: "school-class", label: "클래스", selected: true },
-    ],
-  },
-  {
-    key: "hotel",
-    label: "호텔링",
-    iconPath: HOTEL_ICON_PATH,
-    activeIconPath: HOTEL_ICON_PATH,
-    items: [
-      { key: "hotel-business", label: "영업 & 휴무" },
-      { key: "hotel-pricing", label: "요금제" },
+      { key: "school-class", label: "클래스", href: "./class.html", selected: true },
     ],
   },
 ];
@@ -399,16 +388,35 @@ function createClassModal(rootElement) {
   modal.append(body);
 
   const footer = createElement("div", { className: "class-modal-footer" });
-  const cancelButton = createElement("button", {
-    className: "secondary-button class-modal-cancel-button",
-    type: "button",
-    textContent: "취소",
-    dataset: { action: "cancelClassModal" },
-  });
-  cancelButton.addEventListener("click", () => {
-    closeClassModal(rootElement);
-  });
-  footer.append(cancelButton);
+
+  if (isEditMode) {
+    const deleteButton = createElement("button", {
+      className: "danger-button class-modal-delete-button",
+      type: "button",
+      textContent: "삭제",
+      dataset: { action: "deleteClassModal" },
+    });
+    deleteButton.addEventListener("click", () => {
+      if (confirm("클래스를 삭제하시겠습니까?")) {
+        deleteSchoolClass(classSettingsState.editingClassId);
+        setSchoolClassMemberPets(classSettingsState.editingClassId, []);
+        closeClassModal(rootElement);
+      }
+    });
+    footer.append(deleteButton);
+  } else {
+    const cancelButton = createElement("button", {
+      className: "secondary-button class-modal-cancel-button",
+      type: "button",
+      textContent: "취소",
+      dataset: { action: "cancelClassModal" },
+    });
+    cancelButton.addEventListener("click", () => {
+      closeClassModal(rootElement);
+    });
+    footer.append(cancelButton);
+  }
+
   footer.append(createElement("button", {
     className: "primary-button class-modal-submit-button",
     type: "submit",

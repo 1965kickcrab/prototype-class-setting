@@ -66,6 +66,14 @@ export function updateSchoolClass(classId, classDraft) {
   return nextClassList.find((schoolClass) => schoolClass.id === targetClassId) || null;
 }
 
+export function deleteSchoolClass(classId) {
+  const targetClassId = String(classId || "").trim();
+  const currentClassList = loadSchoolClassList();
+  const nextClassList = currentClassList.filter((schoolClass) => schoolClass.id !== targetClassId);
+  saveSchoolClassList(nextClassList);
+  return nextClassList;
+}
+
 export function getSchoolClassCapacityTotal() {
   return loadSchoolClassList().reduce((totalCapacity, schoolClass) => {
     const capacity = Number(schoolClass.capacity);

@@ -521,7 +521,6 @@ function normalizeCountMap(countMap) {
   return {
     school: normalizeCount(source.school),
     daycare: normalizeCount(source.daycare),
-    hoteling: normalizeCount(source.hoteling),
     oneway: normalizeCount(source.oneway),
     roundtrip: normalizeCount(source.roundtrip),
   };

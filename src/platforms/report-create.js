@@ -6,7 +6,6 @@ const SENT_REPORTS_BY_DATE_STORAGE_KEY = "appReportSentPetKeysByDate";
 
 const FILTERS = {
   kindergarten: "kindergarten",
-  hotel: "hotel",
   unreported: "unreported",
 };
 const SCHOOL_CLASS_FILTER_ALL = "all";
@@ -130,7 +129,6 @@ function createAvailablePetSection() {
   filters.className = "web-report-pet-modal-filters";
   filters.append(
     createKindergartenFilter(),
-    createFilterCheckbox(FILTERS.hotel, "호텔링", false),
     createFilterCheckbox(FILTERS.unreported, "알림장 미전송", false),
   );
 
@@ -482,10 +480,9 @@ function getFilteredMemberPets() {
   return allMemberPets.filter((memberPet) => {
     const petKey = getMemberPetOptionValue(memberPet);
     const hasKindergartenFilter = activeFilters.has(FILTERS.kindergarten);
-    const hasHotelFilter = activeFilters.has(FILTERS.hotel);
-    const hasServiceFilter = hasKindergartenFilter || hasHotelFilter;
+    const hasServiceFilter = hasKindergartenFilter;
     const matchesKindergarten = matchesKindergartenFilter(memberPet);
-    const matchesService = !hasServiceFilter || matchesKindergarten || hasHotelFilter;
+    const matchesService = !hasServiceFilter || matchesKindergarten;
     const matchesUnreported = !activeFilters.has(FILTERS.unreported) || !todaySentReportPetKeys.has(petKey);
     return matchesService && matchesUnreported;
   });
