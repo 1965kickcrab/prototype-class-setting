@@ -4,11 +4,12 @@ export const SCHOOL_CLASS_LIST_STORAGE_KEY = "schoolClassList";
 
 const DEFAULT_SCHOOL_CLASS = {
   id: "school-default",
-  name: "유치원",
+  name: "유치원 기본",
   manager: "",
   capacity: null,
   businessDays: [],
 };
+const LEGACY_DEFAULT_CLASS_NAMES = ["기타", "유치원"];
 
 export function loadSchoolClassList() {
   const storedClassList = readJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, null);
@@ -82,9 +83,13 @@ export function getSchoolClassCapacityTotal() {
 }
 
 function normalizeSchoolClass(schoolClass) {
+  const id = String(schoolClass?.id || createSchoolClassId()).trim();
+  const name = normalizeText(schoolClass?.name);
   return {
-    id: String(schoolClass?.id || createSchoolClassId()).trim(),
-    name: normalizeText(schoolClass?.name),
+    id,
+    name: id === DEFAULT_SCHOOL_CLASS.id && (!name || LEGACY_DEFAULT_CLASS_NAMES.includes(name))
+      ? DEFAULT_SCHOOL_CLASS.name
+      : name,
     manager: normalizeText(schoolClass?.manager),
     capacity: normalizeCapacity(schoolClass?.capacity),
     businessDays: normalizeBusinessDays(schoolClass?.businessDays),
