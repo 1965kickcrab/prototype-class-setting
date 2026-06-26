@@ -374,8 +374,7 @@ function validateDraft() {
   const errors = {};
   const name = registrationState.draft.name.trim();
   const manager = registrationState.draft.manager.trim();
-  const capacityText = String(registrationState.draft.capacity ?? "").trim();
-  const capacity = capacityText ? Number(capacityText) : null;
+  const capacity = Number(registrationState.draft.capacity);
 
   if (!name) {
     errors.name = "반 이름을 입력해 주세요.";
@@ -385,7 +384,7 @@ function validateDraft() {
     errors.manager = "담당은 최대 10글자까지 입력할 수 있습니다.";
   }
 
-  if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 99)) {
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 99) {
     errors.capacity = "정원은 1명부터 99명까지 입력해 주세요.";
   }
 
