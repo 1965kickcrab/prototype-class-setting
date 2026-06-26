@@ -330,12 +330,19 @@
   display: none;
 }
 
-.class-form-save-button {
+.class-form-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 54px;
+}
+
+.class-form-delete-button {
   width: 54px;
   height: 54px;
   border: 0;
   background: transparent;
-  color: var(--color-primary);
+  color: var(--color-warning);
   font-size: 15px;
   font-weight: 800;
   padding: 0;
@@ -353,12 +360,32 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 18px 16px 40px;
+  padding: 18px 16px 112px;
 }
 
 .class-form-app-content .class-member-list {
   max-height: none;
   grid-template-columns: 1fr;
+}
+
+.class-form-fixed-submit-button {
+  position: fixed;
+  left: max(20px, calc((100vw - 430px) / 2 + 20px));
+  right: max(20px, calc((100vw - 430px) / 2 + 20px));
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  height: 60px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.class-form-fixed-submit-button:disabled {
+  background: #d6d6d8;
+  color: #ffffff;
 }
 
 @media (max-width: 430px) {
@@ -380,7 +407,7 @@
     position: relative;
     height: 54px;
     display: grid;
-    grid-template-columns: 54px minmax(0, 1fr) 54px;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
     align-items: center;
     background: var(--color-surface);
   }

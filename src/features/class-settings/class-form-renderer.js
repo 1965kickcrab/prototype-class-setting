@@ -1,6 +1,6 @@
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
-import { createSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
+import { createSchoolClass, deleteSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
 
 const WEEKDAYS = [
@@ -81,19 +81,27 @@ function createClassFormHeader(rootElement) {
     window.location.href = "./class.html";
   });
 
-  const submitButton = createElement("button", {
-    className: "class-form-save-button",
-    type: "button",
-    textContent: "저장",
-    dataset: { action: "submitClassForm" },
+  const actions = createElement("div", {
+    className: "class-form-header-actions",
+    dataset: { area: "classFormHeaderActions" },
   });
-  submitButton.addEventListener("click", () => {
-    submitClassForm(rootElement);
-  });
+
+  if (classFormState.mode === "edit") {
+    const deleteButton = createElement("button", {
+      className: "class-form-delete-button",
+      type: "button",
+      textContent: "삭제",
+      dataset: { action: "deleteClassForm" },
+    });
+    deleteButton.addEventListener("click", () => {
+      deleteClassForm();
+    });
+    actions.append(deleteButton);
+  }
 
   header.append(backButton);
   header.append(createElement("h1", { textContent: classFormState.mode === "edit" ? "클래스 수정" : "클래스 생성" }));
-  header.append(submitButton);
+  header.append(actions);
   return header;
 }
 
@@ -146,7 +154,22 @@ function createClassForm(rootElement) {
     form.append(createBusinessDaysField(rootElement));
   }
 
+  form.append(createFixedSubmitButton(rootElement));
   return form;
+}
+
+function createFixedSubmitButton(rootElement) {
+  const submitButton = createElement("button", {
+    className: "class-form-fixed-submit-button",
+    type: "button",
+    textContent: "저장",
+    dataset: { action: "submitClassForm" },
+  });
+  submitButton.disabled = !hasClassFormChanges();
+  submitButton.addEventListener("click", () => {
+    submitClassForm(rootElement);
+  });
+  return submitButton;
 }
 
 function createTextField(fieldName, labelText, placeholder, options = {}) {
@@ -167,6 +190,7 @@ function createTextField(fieldName, labelText, placeholder, options = {}) {
   input.addEventListener("input", (event) => {
     classFormState.draft[fieldName] = event.target.value;
     classFormState.errors[fieldName] = "";
+    syncFixedSubmitButton();
   });
   field.append(input);
   field.append(createErrorMessage(fieldName));
@@ -198,16 +222,19 @@ function createCapacityField() {
     event.target.value = numericValue;
     classFormState.draft.capacity = numericValue;
     classFormState.errors.capacity = "";
+    syncFixedSubmitButton();
   });
   input.addEventListener("blur", (event) => {
     if (!event.target.value) {
       classFormState.draft.capacity = "";
+      syncFixedSubmitButton();
       return;
     }
 
     const normalizedCapacity = String(Math.min(Math.max(Number(event.target.value), 1), 99));
     event.target.value = normalizedCapacity;
     classFormState.draft.capacity = normalizedCapacity;
+    syncFixedSubmitButton();
   });
   const inputRow = createElement("div", { className: "class-capacity-input-row" });
   inputRow.append(createElement("span", { className: "class-capacity-affix", textContent: "하루에" }));
@@ -378,6 +405,10 @@ function focusClassMemberSearch() {
 }
 
 function submitClassForm(rootElement) {
+  if (!hasClassFormChanges()) {
+    return;
+  }
+
   const validationResult = validateClassDraft(classFormState.draft);
   if (!validationResult.ok) {
     classFormState.errors = validationResult.errors;
@@ -397,6 +428,64 @@ function submitClassForm(rootElement) {
   }
 
   window.location.href = "./class.html";
+}
+
+function deleteClassForm() {
+  if (classFormState.mode !== "edit" || !classFormState.classId || !confirm("클래스를 삭제하시겠습니까?")) {
+    return;
+  }
+
+  deleteSchoolClass(classFormState.classId);
+  setSchoolClassMemberPets(classFormState.classId, []);
+  window.location.href = "./class.html";
+}
+
+function syncFixedSubmitButton() {
+  document.querySelectorAll("[data-action='submitClassForm']").forEach((button) => {
+    button.disabled = !hasClassFormChanges();
+  });
+}
+
+function hasClassFormChanges() {
+  const baselineDraft = getBaselineClassDraft();
+  return JSON.stringify(createComparableClassDraft(classFormState.draft)) !== JSON.stringify(createComparableClassDraft(baselineDraft));
+}
+
+function getBaselineClassDraft() {
+  if (classFormState.mode !== "edit") {
+    return createEmptyClassDraft();
+  }
+
+  const schoolClass = findSchoolClass(classFormState.classId);
+  return schoolClass ? createClassDraft(schoolClass) : createEmptyClassDraft();
+}
+
+function createComparableClassDraft(draft) {
+  return {
+    name: normalizeComparableText(draft.name),
+    manager: normalizeComparableText(draft.manager),
+    capacity: normalizeComparableCapacity(draft.capacity),
+    businessDays: normalizeComparableBusinessDays(draft.businessDays),
+    memberPetKeys: normalizeComparableMemberPetKeys(draft.memberPetKeys),
+  };
+}
+
+function normalizeComparableText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeComparableCapacity(value) {
+  const text = String(value ?? "").trim();
+  return text ? text : "";
+}
+
+function normalizeComparableBusinessDays(businessDays) {
+  const selectedDays = Array.isArray(businessDays) ? businessDays : [];
+  return WEEKDAYS.map((weekday) => weekday.key).filter((weekdayKey) => selectedDays.includes(weekdayKey));
+}
+
+function normalizeComparableMemberPetKeys(memberPetKeys) {
+  return Array.isArray(memberPetKeys) ? [...new Set(memberPetKeys.map(String))].sort() : [];
 }
 
 function validateClassDraft(draft) {
