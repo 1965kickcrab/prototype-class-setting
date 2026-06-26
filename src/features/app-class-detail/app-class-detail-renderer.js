@@ -1,4 +1,4 @@
-import { deleteSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
+import { loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
 import { createElement } from "../../utils/dom.js";
 
@@ -50,15 +50,12 @@ function createAppClassEditScreen(rootElement, schoolClass) {
     dataset: { screen: "appClassDetail", platform: "app", state: schoolClass ? "edit" : "missing" },
   });
 
-  screen.append(createHeader(rootElement, schoolClass));
+  screen.append(createHeader(rootElement));
   screen.append(schoolClass ? createForm(rootElement) : createMissingState());
-  if (schoolClass) {
-    screen.append(createFixedSubmitButton(rootElement));
-  }
   return screen;
 }
 
-function createHeader(rootElement, schoolClass) {
+function createHeader(rootElement) {
   const header = createElement("header", {
     className: "app-class-header app-class-registration-header",
     dataset: { area: "header" },
@@ -75,33 +72,20 @@ function createHeader(rootElement, schoolClass) {
     window.location.href = "./app-class-settings.html";
   });
 
-  const deleteButton = createElement("button", {
-    className: "app-class-save-button app-class-delete-button",
-    type: "button",
-    textContent: "삭제",
-    dataset: { action: "deleteClass" },
-  });
-  deleteButton.addEventListener("click", () => {
-    deleteClass();
-  });
-
-  header.append(backButton);
-  header.append(createElement("h1", { textContent: "클래스 수정" }));
-  header.append(schoolClass ? deleteButton : createElement("span", { className: "app-class-header-spacer" }));
-  return header;
-}
-
-function createFixedSubmitButton(rootElement) {
   const submitButton = createElement("button", {
-    className: "app-class-edit-submit-button",
-    type: "button",
-    textContent: "수정",
+    className: "app-class-save-button",
+    type: "submit",
+    textContent: "저장",
     dataset: { action: "submitClassEdit" },
   });
   submitButton.addEventListener("click", () => {
     submitClassEdit(rootElement);
   });
-  return submitButton;
+
+  header.append(backButton);
+  header.append(createElement("h1", { textContent: "클래스 수정" }));
+  header.append(submitButton);
+  return header;
 }
 
 function createForm(rootElement) {
@@ -386,22 +370,11 @@ function submitClassEdit(rootElement) {
   window.location.href = "./app-class-settings.html";
 }
 
-function deleteClass() {
-  if (!detailState.classId || !confirm("클래스를 삭제하시겠습니까?")) {
-    return;
-  }
-
-  deleteSchoolClass(detailState.classId);
-  setSchoolClassMemberPets(detailState.classId, []);
-  window.location.href = "./app-class-settings.html";
-}
-
 function validateDraft() {
   const errors = {};
   const name = detailState.draft.name.trim();
   const manager = detailState.draft.manager.trim();
-  const capacityText = String(detailState.draft.capacity ?? "").trim();
-  const capacity = capacityText ? Number(capacityText) : null;
+  const capacity = Number(detailState.draft.capacity);
 
   if (!name) {
     errors.name = "반 이름을 입력해 주세요.";
@@ -411,7 +384,7 @@ function validateDraft() {
     errors.manager = "담당은 최대 10글자까지 입력할 수 있습니다.";
   }
 
-  if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 99)) {
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 99) {
     errors.capacity = "정원은 1명부터 99명까지 입력해 주세요.";
   }
 
