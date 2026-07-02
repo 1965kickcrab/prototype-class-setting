@@ -1,4 +1,4 @@
-import { createSchoolClass } from "../../storage/class-storage.js";
+import { createSchoolClass, loadSchoolClassList } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
 import { createElement } from "../../utils/dom.js";
 
@@ -18,7 +18,7 @@ const registrationState = {
     name: "",
     manager: "",
     capacity: "",
-    businessDays: [],
+    businessDays: getDefaultBusinessDays(),
     memberPetKeys: [],
   },
   errors: {},
@@ -43,6 +43,7 @@ function createAppClassRegistrationScreen(rootElement) {
 
   screen.append(createHeader(rootElement));
   screen.append(createForm(rootElement));
+  screen.append(createFixedSubmitButton(rootElement));
   return screen;
 }
 
@@ -63,20 +64,24 @@ function createHeader(rootElement) {
     window.location.href = "./app-class-settings.html";
   });
 
+  header.append(backButton);
+  header.append(createElement("h1", { textContent: "클래스 등록" }));
+  header.append(createElement("span", { className: "app-class-header-spacer" }));
+  return header;
+}
+
+function createFixedSubmitButton(rootElement) {
   const submitButton = createElement("button", {
-    className: "app-class-save-button",
-    type: "submit",
+    className: "app-class-edit-submit-button app-class-registration-submit-button",
+    type: "button",
     textContent: "저장",
     dataset: { action: "submitClassRegistration" },
   });
+  updateSubmitButtonState(submitButton);
   submitButton.addEventListener("click", () => {
     submitClassRegistration(rootElement);
   });
-
-  header.append(backButton);
-  header.append(createElement("h1", { textContent: "클래스 등록" }));
-  header.append(submitButton);
-  return header;
+  return submitButton;
 }
 
 function createForm(rootElement) {
@@ -149,7 +154,13 @@ function createTextField(rootElement, fieldName, labelText, placeholder, maxLeng
   input.addEventListener("input", (event) => {
     registrationState.draft[fieldName] = event.target.value;
     registrationState.errors[fieldName] = "";
+    syncSubmitButtonState(rootElement);
   });
+  if (fieldName === "name") {
+    input.addEventListener("blur", () => {
+      validateClassNameAvailability(rootElement);
+    });
+  }
   field.append(input);
   field.append(createErrorMessage(fieldName));
   return field;
@@ -180,6 +191,7 @@ function createCapacityField(rootElement) {
     event.target.value = numericValue;
     registrationState.draft.capacity = numericValue;
     registrationState.errors.capacity = "";
+    syncSubmitButtonState(rootElement);
   });
   input.addEventListener("blur", (event) => {
     if (!event.target.value) {
@@ -189,6 +201,7 @@ function createCapacityField(rootElement) {
     const normalizedCapacity = String(Math.min(Math.max(Number(event.target.value), 1), 99));
     event.target.value = normalizedCapacity;
     registrationState.draft.capacity = normalizedCapacity;
+    syncSubmitButtonState(rootElement);
   });
   field.append(input);
   field.append(createErrorMessage("capacity"));
@@ -345,6 +358,19 @@ function submitClassRegistration(rootElement) {
   window.location.href = "./app-class-settings.html";
 }
 
+function syncSubmitButtonState(rootElement) {
+  const submitButton = rootElement.querySelector('[data-action="submitClassRegistration"]');
+  if (submitButton) {
+    updateSubmitButtonState(submitButton);
+  }
+}
+
+function updateSubmitButtonState(submitButton) {
+  const isSubmittable = Object.keys(validateDraft()).length === 0;
+  submitButton.disabled = !isSubmittable;
+  submitButton.dataset.state = isSubmittable ? "enabled" : "disabled";
+}
+
 function getErrorTab(errors) {
   return errors.name || errors.manager || errors.capacity || errors.businessDays ? "basic" : "detail";
 }
@@ -374,23 +400,52 @@ function validateDraft() {
   const errors = {};
   const name = registrationState.draft.name.trim();
   const manager = registrationState.draft.manager.trim();
-  const capacity = Number(registrationState.draft.capacity);
+  const capacityText = String(registrationState.draft.capacity ?? "").trim();
+  const capacity = capacityText ? Number(capacityText) : null;
 
   if (!name) {
     errors.name = "반 이름을 입력해 주세요.";
+  }
+
+  if (!errors.name && isDuplicateClassName(name)) {
+    errors.name = "이미 존재하는 반 이름입니다.";
   }
 
   if (manager.length > 10) {
     errors.manager = "담당은 최대 10글자까지 입력할 수 있습니다.";
   }
 
-  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 99) {
-    errors.capacity = "정원은 1명부터 99명까지 입력해 주세요.";
+  if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 99)) {
+    errors.capacity = "정원은 1마리부터 99마리까지 입력해 주세요.";
   }
 
-  if (registrationState.draft.businessDays.length === 0) {
-    errors.businessDays = "영업일을 선택해 주세요.";
+  if (!Array.isArray(registrationState.draft.businessDays) || registrationState.draft.businessDays.length === 0) {
+    errors.businessDays = "영업일은 최소 1개 이상 선택해 주세요.";
   }
 
   return errors;
+}
+
+function validateClassNameAvailability(rootElement) {
+  if (isDuplicateClassName(registrationState.draft.name)) {
+    registrationState.errors.name = "이미 존재하는 반 이름입니다.";
+    rerender(rootElement);
+  }
+}
+
+function isDuplicateClassName(className) {
+  const normalizedClassName = normalizeClassName(className);
+  if (!normalizedClassName) {
+    return false;
+  }
+
+  return loadSchoolClassList().some((schoolClass) => normalizeClassName(schoolClass.name) === normalizedClassName);
+}
+
+function normalizeClassName(className) {
+  return String(className || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function getDefaultBusinessDays() {
+  return WEEKDAYS.map((weekday) => weekday.key);
 }

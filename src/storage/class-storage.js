@@ -1,13 +1,15 @@
 import { readJsonStorage, writeJsonStorage } from "./storage-utils.js";
 
 export const SCHOOL_CLASS_LIST_STORAGE_KEY = "schoolClassList";
+export const DEFAULT_SCHOOL_CLASS_ID = "school-default";
+export const DEFAULT_SCHOOL_CLASS_NAME = "유치원 기본";
 
 const DEFAULT_SCHOOL_CLASS = {
-  id: "school-default",
-  name: "유치원 기본",
+  id: DEFAULT_SCHOOL_CLASS_ID,
+  name: DEFAULT_SCHOOL_CLASS_NAME,
   manager: "",
   capacity: null,
-  businessDays: [],
+  businessDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
 };
 const LEGACY_DEFAULT_CLASS_NAMES = ["기타", "유치원"];
 
@@ -73,6 +75,19 @@ export function deleteSchoolClass(classId) {
   const nextClassList = currentClassList.filter((schoolClass) => schoolClass.id !== targetClassId);
   saveSchoolClassList(nextClassList);
   return nextClassList;
+}
+
+export function getDefaultSchoolClass() {
+  return { ...DEFAULT_SCHOOL_CLASS };
+}
+
+export function ensureDefaultSchoolClass() {
+  const currentClassList = loadSchoolClassList();
+  if (currentClassList.length > 0) {
+    return currentClassList;
+  }
+
+  return saveSchoolClassList([{ ...DEFAULT_SCHOOL_CLASS }]);
 }
 
 export function getSchoolClassCapacityTotal() {

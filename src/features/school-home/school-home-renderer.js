@@ -1025,7 +1025,7 @@ function createReservationRegistrationModal(schoolHomeState) {
   modal.append(body);
 
   const footer = createElement("footer", { className: "school-registration-modal-footer" });
-  const canSubmit = canSubmitReservationRegistration(state);
+  const canSubmit = canSubmitReservationRegistration(schoolHomeState);
   const submitButton = createElement("button", {
     className: "primary-button school-registration-submit-button",
     type: "button",
@@ -1140,9 +1140,11 @@ function createMemberSuggestionList(schoolHomeState) {
       schoolHomeState.reservationRegistration.selectedClassId = getAutoSelectedMemberSchoolClassId(memberPet);
       schoolHomeState.reservationRegistration.isMemberSuggestionOpen = false;
       schoolHomeState.reservationRegistration.selectedDates = schoolHomeState.reservationRegistration.selectedDates.filter((dateKey) => {
-        return !isExistingReservationDate(schoolHomeState, dateKey);
+        return !isExistingReservationDate(schoolHomeState, dateKey)
+          && canKeepReservationRegistrationDate(schoolHomeState, dateKey);
       });
       schoolHomeState.reservationRegistration.errors.member = "";
+      schoolHomeState.reservationRegistration.errors.selectedDates = "";
       rerender(schoolHomeState);
     });
     list.append(button);
@@ -1174,8 +1176,12 @@ function createRegistrationClassField(schoolHomeState) {
   });
   select.addEventListener("change", (event) => {
     state.selectedClassId = event.target.value;
-    state.selectedDates = state.selectedDates.filter((dateKey) => !isExistingReservationDate(schoolHomeState, dateKey));
+    state.selectedDates = state.selectedDates.filter((dateKey) => {
+      return !isExistingReservationDate(schoolHomeState, dateKey)
+        && canKeepReservationRegistrationDate(schoolHomeState, dateKey);
+    });
     state.errors.classId = "";
+    state.errors.selectedDates = "";
     rerender(schoolHomeState);
   });
   field.append(select);
@@ -1245,6 +1251,8 @@ function createRegistrationDateButton(schoolHomeState, cell) {
   const isSelected = state.selectedDates.includes(cell.dateKey);
   const shouldShowExistingReservations = Boolean(state.selectedMemberPet && state.selectedClassId);
   const isAlreadyReserved = shouldShowExistingReservations && isExistingReservationDate(schoolHomeState, cell.dateKey);
+  const isCapacityFull = shouldShowExistingReservations && isClassCapacityFullForDate(schoolHomeState, cell.dateKey);
+  const isCapacityBlocked = !isSelected && isCapacityFull && !state.allowOverCapacity;
   const isDateSelectable = canSelectReservationRegistrationDate(state);
   const classNames = [
     "school-registration-date",
@@ -1252,6 +1260,7 @@ function createRegistrationDateButton(schoolHomeState, cell) {
     cell.isHoliday ? "is-holiday" : "",
     isSelected ? "is-selected" : "",
     isAlreadyReserved ? "is-reserved" : "",
+    isCapacityBlocked ? "is-capacity-full" : "",
     isDateSelectable ? "" : "is-disabled",
   ].filter(Boolean).join(" ");
   const button = createElement("button", {
@@ -1260,13 +1269,16 @@ function createRegistrationDateButton(schoolHomeState, cell) {
     dataset: {
       action: "toggleReservationRegistrationDate",
       entityId: cell.dateKey,
-      state: !isDateSelectable ? "disabled" : isAlreadyReserved ? "reserved" : isSelected ? "selected" : "idle",
+      state: !isDateSelectable || isCapacityBlocked ? "disabled" : isAlreadyReserved ? "reserved" : isSelected ? "selected" : "idle",
     },
   });
-  button.disabled = !isDateSelectable || isAlreadyReserved;
+  button.disabled = !isDateSelectable || isAlreadyReserved || isCapacityBlocked;
   button.append(createElement("span", { className: "school-registration-date-number", textContent: String(cell.dayNumber) }));
   if (cell.isHoliday) {
     button.append(createElement("span", { className: "school-registration-date-holiday", textContent: "휴무" }));
+  }
+  if (isCapacityBlocked) {
+    button.append(createElement("span", { className: "school-registration-date-capacity", textContent: "마감" }));
   }
   if (isAlreadyReserved || isSelected) {
     const check = createElement("span", { className: "school-registration-date-check" });
@@ -1274,7 +1286,7 @@ function createRegistrationDateButton(schoolHomeState, cell) {
     button.append(check);
   }
   button.addEventListener("click", () => {
-    if (!isDateSelectable || isAlreadyReserved) {
+    if (!isDateSelectable || isAlreadyReserved || isCapacityBlocked) {
       return;
     }
 
@@ -1292,6 +1304,7 @@ function createRegistrationCountSection(schoolHomeState) {
   const selectedCount = state.selectedDates.length;
   const remainingCount = getReservationTicketRemainingCount();
   const overCount = Math.max(0, selectedCount - remainingCount);
+  const hasCapacityExceeded = hasReservationRegistrationCapacityExceeded(schoolHomeState);
   const section = createElement("section", { className: "school-registration-count-section" });
   section.append(createElement("strong", { textContent: "예약 횟수" }));
   section.append(createElement("span", {
@@ -1304,7 +1317,36 @@ function createRegistrationCountSection(schoolHomeState) {
       textContent: `${overCount}회 초과`,
     }));
   }
+  if (hasCapacityExceeded) {
+    section.append(createElement("span", {
+      className: "school-registration-count-over",
+      textContent: "정원 초과",
+    }));
+  }
+  section.append(createOverCapacityCheckbox(schoolHomeState));
   return section;
+}
+
+function createOverCapacityCheckbox(schoolHomeState) {
+  const state = schoolHomeState.reservationRegistration;
+  const label = createElement("label", {
+    className: "school-registration-over-capacity",
+    dataset: { field: "allowOverCapacity", state: state.allowOverCapacity ? "checked" : "unchecked" },
+  });
+  const checkbox = createElement("input", {
+    type: "checkbox",
+    dataset: { action: "toggleOverCapacityReservation" },
+  });
+  checkbox.checked = state.allowOverCapacity;
+  checkbox.addEventListener("change", () => {
+    state.allowOverCapacity = checkbox.checked;
+    state.selectedDates = state.selectedDates.filter((dateKey) => canKeepReservationRegistrationDate(schoolHomeState, dateKey));
+    state.errors.selectedDates = "";
+    rerender(schoolHomeState);
+  });
+  label.append(checkbox);
+  label.append(createElement("span", { textContent: "초과 예약" }));
+  return label;
 }
 
 function createRegistrationError(message) {
@@ -1329,8 +1371,14 @@ function canSelectReservationRegistrationDate(state) {
   return Boolean(state.selectedMemberPet && state.selectedClassId);
 }
 
-function canSubmitReservationRegistration(state) {
-  return Boolean(state.selectedMemberPet && state.selectedClassId && state.selectedDates.length > 0);
+function canSubmitReservationRegistration(schoolHomeState) {
+  const state = schoolHomeState.reservationRegistration;
+  return Boolean(
+    state.selectedMemberPet
+    && state.selectedClassId
+    && state.selectedDates.length > 0
+    && !hasReservationRegistrationCapacityExceeded(schoolHomeState)
+  );
 }
 
 function resetReservationRegistrationModal(schoolHomeState, currentMonth) {
@@ -1379,6 +1427,10 @@ function submitReservationRegistration(schoolHomeState) {
     if (duplicateDates.length) {
       errors.selectedDates = "같은 반려견은 같은 날짜/클래스에 1회만 예약할 수 있습니다.";
     }
+  }
+
+  if (!state.allowOverCapacity && hasReservationRegistrationCapacityExceeded(schoolHomeState)) {
+    errors.selectedDates = "정원을 초과한 날짜가 있습니다. 초과 예약을 선택해 주세요.";
   }
 
   if (Object.keys(errors).length) {
@@ -1476,6 +1528,37 @@ function isExistingReservationDate(schoolHomeState, dateKey, classId = schoolHom
       && reservation.petId === petId
       && reservation.classId === selectedClassId;
   });
+}
+
+function canKeepReservationRegistrationDate(schoolHomeState, dateKey) {
+  const state = schoolHomeState.reservationRegistration;
+  return state.allowOverCapacity || !isClassCapacityFullForDate(schoolHomeState, dateKey);
+}
+
+function hasReservationRegistrationCapacityExceeded(schoolHomeState) {
+  const state = schoolHomeState.reservationRegistration;
+  if (!state.selectedClassId || state.allowOverCapacity) {
+    return false;
+  }
+
+  return state.selectedDates.some((dateKey) => isClassCapacityFullForDate(schoolHomeState, dateKey));
+}
+
+function isClassCapacityFullForDate(schoolHomeState, dateKey, classId = schoolHomeState.reservationRegistration.selectedClassId) {
+  const capacity = getClassCapacityById(classId);
+  if (capacity <= 0) {
+    return false;
+  }
+
+  return getActiveReservationCountByClassDate(schoolHomeState, classId, dateKey) >= capacity;
+}
+
+function getActiveReservationCountByClassDate(schoolHomeState, classId, dateKey) {
+  return (schoolHomeState.reservations || []).filter((reservation) => {
+    return reservation.date === dateKey
+      && reservation.classId === classId
+      && !isCanceledReservation(reservation);
+  }).length;
 }
 
 function getMemberPetDisplayName(memberPet) {

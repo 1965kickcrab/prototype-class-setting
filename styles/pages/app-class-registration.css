@@ -1,5 +1,5 @@
 .app-class-registration-header {
-  grid-template-columns: 40px minmax(0, 1fr) 64px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
 }
 
 .app-class-save-button {
@@ -18,7 +18,32 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px 24px 20px 16px;
+  padding: 20px 24px 112px 16px;
+}
+
+.app-class-edit-submit-button,
+.app-class-registration-submit-button {
+  position: fixed;
+  left: max(20px, calc((100vw - 430px) / 2 + 20px));
+  right: max(20px, calc((100vw - 430px) / 2 + 20px));
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  height: 60px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.app-class-edit-submit-button:disabled,
+.app-class-edit-submit-button[data-state="disabled"],
+.app-class-registration-submit-button:disabled,
+.app-class-registration-submit-button[data-state="disabled"] {
+  background: #d6d6d8;
+  color: #ffffff;
+  cursor: not-allowed;
 }
 
 .app-class-registration-tabs {
@@ -217,7 +242,7 @@
 
 @media (max-width: 360px) {
   .app-class-registration-header {
-    grid-template-columns: 36px minmax(0, 1fr) 56px;
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
   }
 
   .app-class-save-button {

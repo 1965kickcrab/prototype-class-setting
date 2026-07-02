@@ -38,6 +38,7 @@ export function createReservationRegistrationState(currentMonth = getSchoolHomeI
     selectedClassId: "",
     currentMonth,
     selectedDates: [],
+    allowOverCapacity: false,
     errors: {},
   };
 }

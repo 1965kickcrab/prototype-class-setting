@@ -32,6 +32,27 @@ export function appendStoredSchoolReservations(reservationsToAppend) {
   return saveStoredSchoolReservations(nextReservations);
 }
 
+export function reassignStoredSchoolReservationsClass(sourceClassId, targetClass) {
+  const targetSourceClassId = String(sourceClassId || "").trim();
+  if (!targetSourceClassId || !targetClass?.id) {
+    return loadStoredSchoolReservations();
+  }
+
+  const nextReservations = loadStoredSchoolReservations().map((reservation) => {
+    if (reservation.classId !== targetSourceClassId) {
+      return reservation;
+    }
+
+    return {
+      ...reservation,
+      classId: targetClass.id,
+      className: targetClass.name || "",
+    };
+  });
+
+  return saveStoredSchoolReservations(nextReservations);
+}
+
 export function getSchoolHomeReservationMembers() {
   return createMembersFromReservations(SCHOOL_HOME_MEMBER_FIXTURES);
 }

@@ -609,7 +609,7 @@ function getSelectedSchoolClasses(schoolClassIds) {
 
 function formatClassMeta(schoolClass) {
   const manager = formatText(schoolClass.manager);
-  const capacity = schoolClass.capacity ? `정원 ${schoolClass.capacity}명` : "";
+  const capacity = schoolClass.capacity ? `정원 ${schoolClass.capacity}마리` : "";
   return [manager === "-" ? "" : `담당 ${manager}`, capacity].filter(Boolean).join(" / ") || "-";
 }
 
