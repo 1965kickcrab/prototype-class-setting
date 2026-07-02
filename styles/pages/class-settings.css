@@ -326,6 +326,12 @@
   height: 32px;
 }
 
+.class-modal-submit-button:disabled {
+  background: #d6d6d8;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
 .class-settings-app-shell.app-page-shell {
   display: none;
 }

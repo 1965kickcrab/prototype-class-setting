@@ -25,6 +25,7 @@ export function createEmptySchoolReservationDraft() {
     selectedClassId: "",
     currentMonth: "2025-07",
     selectedDates: [],
+    allowOverCapacity: false,
   };
 }
 
@@ -34,5 +35,6 @@ function normalizeDraft(draft) {
     selectedClassId: String(draft?.selectedClassId || ""),
     currentMonth: String(draft?.currentMonth || "2025-07"),
     selectedDates: Array.isArray(draft?.selectedDates) ? draft.selectedDates.filter(Boolean) : [],
+    allowOverCapacity: Boolean(draft?.allowOverCapacity),
   };
 }

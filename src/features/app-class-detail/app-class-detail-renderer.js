@@ -1,5 +1,12 @@
-import { deleteSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
+import {
+  deleteSchoolClass,
+  ensureDefaultSchoolClass,
+  getDefaultSchoolClass,
+  loadSchoolClassList,
+  updateSchoolClass,
+} from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
+import { reassignStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 import { createElement } from "../../utils/dom.js";
 
 const BACK_ICON_PATH = "assets/icons/iconBack.svg";
@@ -98,6 +105,7 @@ function createFixedSubmitButton(rootElement) {
     textContent: "수정",
     dataset: { action: "submitClassEdit" },
   });
+  updateSubmitButtonState(submitButton);
   submitButton.addEventListener("click", () => {
     submitClassEdit(rootElement);
   });
@@ -121,9 +129,9 @@ function createForm(rootElement) {
     return form;
   }
 
-  form.append(createTextField("name", "반 이름", "최대 20글자", 20));
-  form.append(createTextField("manager", "담당", "최대 10글자", 10));
-  form.append(createCapacityField());
+  form.append(createTextField(rootElement, "name", "반 이름", "최대 20글자", 20));
+  form.append(createTextField(rootElement, "manager", "담당", "최대 10글자", 10));
+  form.append(createCapacityField(rootElement));
   form.append(createBusinessDaysField(rootElement));
   return form;
 }
@@ -158,7 +166,7 @@ function createTabs(rootElement) {
   return tabs;
 }
 
-function createTextField(fieldName, labelText, placeholder, maxLength) {
+function createTextField(rootElement, fieldName, labelText, placeholder, maxLength) {
   const field = createElement("label", {
     className: detailState.errors[fieldName] ? "app-class-form-field has-error" : "app-class-form-field",
   });
@@ -174,13 +182,19 @@ function createTextField(fieldName, labelText, placeholder, maxLength) {
   input.addEventListener("input", (event) => {
     detailState.draft[fieldName] = event.target.value;
     detailState.errors[fieldName] = "";
+    syncSubmitButtonState(rootElement);
   });
+  if (fieldName === "name") {
+    input.addEventListener("blur", () => {
+      validateClassNameAvailability(rootElement);
+    });
+  }
   field.append(input);
   field.append(createErrorMessage(fieldName));
   return field;
 }
 
-function createCapacityField() {
+function createCapacityField(rootElement) {
   const field = createElement("label", {
     className: detailState.errors.capacity ? "app-class-form-field has-error" : "app-class-form-field",
   });
@@ -205,6 +219,7 @@ function createCapacityField() {
     event.target.value = numericValue;
     detailState.draft.capacity = numericValue;
     detailState.errors.capacity = "";
+    syncSubmitButtonState(rootElement);
   });
   input.addEventListener("blur", (event) => {
     if (!event.target.value) {
@@ -214,6 +229,7 @@ function createCapacityField() {
     const normalizedCapacity = String(Math.min(Math.max(Number(event.target.value), 1), 99));
     event.target.value = normalizedCapacity;
     detailState.draft.capacity = normalizedCapacity;
+    syncSubmitButtonState(rootElement);
   });
   field.append(input);
   field.append(createErrorMessage("capacity"));
@@ -386,12 +402,27 @@ function submitClassEdit(rootElement) {
   window.location.href = "./app-class-settings.html";
 }
 
+function syncSubmitButtonState(rootElement) {
+  const submitButton = rootElement.querySelector('[data-action="submitClassEdit"]');
+  if (submitButton) {
+    updateSubmitButtonState(submitButton);
+  }
+}
+
+function updateSubmitButtonState(submitButton) {
+  const isSubmittable = Object.keys(validateDraft()).length === 0;
+  submitButton.disabled = !isSubmittable;
+  submitButton.dataset.state = isSubmittable ? "enabled" : "disabled";
+}
+
 function deleteClass() {
-  if (!detailState.classId || !confirm("클래스를 삭제하시겠습니까?")) {
+  if (!detailState.classId || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 유치원 기본 클래스로 이동합니다.")) {
     return;
   }
 
   deleteSchoolClass(detailState.classId);
+  ensureDefaultSchoolClass();
+  reassignStoredSchoolReservationsClass(detailState.classId, getDefaultSchoolClass());
   setSchoolClassMemberPets(detailState.classId, []);
   window.location.href = "./app-class-settings.html";
 }
@@ -407,19 +438,46 @@ function validateDraft() {
     errors.name = "반 이름을 입력해 주세요.";
   }
 
+  if (!errors.name && isDuplicateClassName(name, detailState.classId)) {
+    errors.name = "이미 존재하는 반 이름입니다.";
+  }
+
   if (manager.length > 10) {
     errors.manager = "담당은 최대 10글자까지 입력할 수 있습니다.";
   }
 
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 99)) {
-    errors.capacity = "정원은 1명부터 99명까지 입력해 주세요.";
+    errors.capacity = "정원은 1마리부터 99마리까지 입력해 주세요.";
   }
 
-  if (detailState.draft.businessDays.length === 0) {
-    errors.businessDays = "영업일을 선택해 주세요.";
+  if (!Array.isArray(detailState.draft.businessDays) || detailState.draft.businessDays.length === 0) {
+    errors.businessDays = "영업일은 최소 1개 이상 선택해 주세요.";
   }
 
   return errors;
+}
+
+function validateClassNameAvailability(rootElement) {
+  if (isDuplicateClassName(detailState.draft.name, detailState.classId)) {
+    detailState.errors.name = "이미 존재하는 반 이름입니다.";
+    rerender(rootElement);
+  }
+}
+
+function isDuplicateClassName(className, excludedClassId = "") {
+  const normalizedClassName = normalizeClassName(className);
+  const targetExcludedClassId = String(excludedClassId || "").trim();
+  if (!normalizedClassName) {
+    return false;
+  }
+
+  return loadSchoolClassList().some((schoolClass) => {
+    return schoolClass.id !== targetExcludedClassId && normalizeClassName(schoolClass.name) === normalizedClassName;
+  });
+}
+
+function normalizeClassName(className) {
+  return String(className || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function createEmptyDraft() {
@@ -427,7 +485,7 @@ function createEmptyDraft() {
     name: "",
     manager: "",
     capacity: "",
-    businessDays: [],
+    businessDays: getDefaultBusinessDays(),
     memberPetKeys: [],
   };
 }
@@ -469,4 +527,8 @@ function getVisibleMemberPets(memberPets) {
 
 function formatMemberPetMeta(memberPet) {
   return [memberPet.breed, memberPet.guardianName].filter(Boolean).join(" / ") || "-";
+}
+
+function getDefaultBusinessDays() {
+  return WEEKDAYS.map((weekday) => weekday.key);
 }

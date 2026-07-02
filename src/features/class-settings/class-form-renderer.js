@@ -1,7 +1,15 @@
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
-import { createSchoolClass, deleteSchoolClass, loadSchoolClassList, updateSchoolClass } from "../../storage/class-storage.js";
+import {
+  createSchoolClass,
+  deleteSchoolClass,
+  ensureDefaultSchoolClass,
+  getDefaultSchoolClass,
+  loadSchoolClassList,
+  updateSchoolClass,
+} from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
+import { reassignStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 
 const WEEKDAYS = [
   { key: "mon", label: "월" },
@@ -148,8 +156,8 @@ function createClassForm(rootElement) {
   if (classFormState.activeTab === "detail") {
     form.append(createClassMemberField(rootElement));
   } else {
-    form.append(createTextField("name", "반 이름", "최대 20글자", { maxLength: 20 }));
-    form.append(createTextField("manager", "담당", "최대 10글자", { maxLength: 10 }));
+    form.append(createTextField(rootElement, "name", "반 이름", "최대 20글자", { maxLength: 20 }));
+    form.append(createTextField(rootElement, "manager", "담당", "최대 10글자", { maxLength: 10 }));
     form.append(createCapacityField());
     form.append(createBusinessDaysField(rootElement));
   }
@@ -172,7 +180,7 @@ function createFixedSubmitButton(rootElement) {
   return submitButton;
 }
 
-function createTextField(fieldName, labelText, placeholder, options = {}) {
+function createTextField(rootElement, fieldName, labelText, placeholder, options = {}) {
   const field = createElement("label", {
     className: classFormState.errors[fieldName] ? "class-form-field has-error" : "class-form-field",
   });
@@ -192,6 +200,11 @@ function createTextField(fieldName, labelText, placeholder, options = {}) {
     classFormState.errors[fieldName] = "";
     syncFixedSubmitButton();
   });
+  if (fieldName === "name") {
+    input.addEventListener("blur", () => {
+      validateClassNameAvailability(rootElement);
+    });
+  }
   field.append(input);
   field.append(createErrorMessage(fieldName));
   return field;
@@ -409,7 +422,7 @@ function submitClassForm(rootElement) {
     return;
   }
 
-  const validationResult = validateClassDraft(classFormState.draft);
+  const validationResult = validateClassDraft(classFormState.draft, classFormState.classId);
   if (!validationResult.ok) {
     classFormState.errors = validationResult.errors;
     classFormState.activeTab = "basic";
@@ -431,11 +444,17 @@ function submitClassForm(rootElement) {
 }
 
 function deleteClassForm() {
-  if (classFormState.mode !== "edit" || !classFormState.classId || !confirm("클래스를 삭제하시겠습니까?")) {
+  if (
+    classFormState.mode !== "edit"
+    || !classFormState.classId
+    || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 유치원 기본 클래스로 이동합니다.")
+  ) {
     return;
   }
 
   deleteSchoolClass(classFormState.classId);
+  ensureDefaultSchoolClass();
+  reassignStoredSchoolReservationsClass(classFormState.classId, getDefaultSchoolClass());
   setSchoolClassMemberPets(classFormState.classId, []);
   window.location.href = "./class.html";
 }
@@ -488,7 +507,14 @@ function normalizeComparableMemberPetKeys(memberPetKeys) {
   return Array.isArray(memberPetKeys) ? [...new Set(memberPetKeys.map(String))].sort() : [];
 }
 
-function validateClassDraft(draft) {
+function validateClassNameAvailability(rootElement) {
+  if (isDuplicateClassName(classFormState.draft.name, classFormState.classId)) {
+    classFormState.errors.name = "이미 존재하는 반 이름입니다.";
+    renderClassForm(rootElement, { mode: classFormState.mode, classId: classFormState.classId });
+  }
+}
+
+function validateClassDraft(draft, excludedClassId = "") {
   const errors = {};
   const name = String(draft.name || "").trim().replace(/\s+/g, " ");
   const manager = String(draft.manager || "").trim().replace(/\s+/g, " ");
@@ -504,6 +530,10 @@ function validateClassDraft(draft) {
     errors.name = "반 이름은 최대 20글자까지 입력할 수 있습니다.";
   }
 
+  if (!errors.name && isDuplicateClassName(name, excludedClassId)) {
+    errors.name = "이미 존재하는 반 이름입니다.";
+  }
+
   if (manager.length > 10) {
     errors.manager = "담당은 최대 10글자까지 입력할 수 있습니다.";
   }
@@ -513,7 +543,7 @@ function validateClassDraft(draft) {
   }
 
   if (businessDays.length === 0) {
-    errors.businessDays = "영업일을 선택해 주세요.";
+    errors.businessDays = "영업일은 최소 1개 이상 선택해 주세요.";
   }
 
   return {
@@ -528,6 +558,22 @@ function validateClassDraft(draft) {
   };
 }
 
+function isDuplicateClassName(className, excludedClassId = "") {
+  const normalizedClassName = normalizeClassName(className);
+  const targetExcludedClassId = String(excludedClassId || "").trim();
+  if (!normalizedClassName) {
+    return false;
+  }
+
+  return loadSchoolClassList().some((schoolClass) => {
+    return schoolClass.id !== targetExcludedClassId && normalizeClassName(schoolClass.name) === normalizedClassName;
+  });
+}
+
+function normalizeClassName(className) {
+  return String(className || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function findSchoolClass(classId) {
   return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId) || null;
 }
@@ -537,7 +583,7 @@ function createEmptyClassDraft() {
     name: "",
     manager: "",
     capacity: "",
-    businessDays: [],
+    businessDays: getDefaultBusinessDays(),
     memberPetKeys: [],
   };
 }
@@ -590,4 +636,8 @@ function createErrorMessage(fieldName) {
     className: "class-form-error",
     textContent: classFormState.errors[fieldName] || "",
   });
+}
+
+function getDefaultBusinessDays() {
+  return WEEKDAYS.map((weekday) => weekday.key);
 }

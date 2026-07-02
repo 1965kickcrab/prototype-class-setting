@@ -1006,6 +1006,11 @@
   cursor: not-allowed;
 }
 
+.school-registration-date.is-capacity-full {
+  color: #c4c4c4;
+  cursor: not-allowed;
+}
+
 .school-registration-date.is-disabled {
   background: #fafafb;
   color: #c4c4c4;
@@ -1017,6 +1022,12 @@
 }
 
 .school-registration-date-holiday {
+  margin-left: 8px;
+  color: var(--color-warning);
+  font-size: 14px;
+}
+
+.school-registration-date-capacity {
   margin-left: 8px;
   color: var(--color-warning);
   font-size: 14px;
@@ -1069,6 +1080,16 @@
   margin-left: auto;
   color: var(--color-warning);
   font-size: 16px;
+  font-weight: 800;
+}
+
+.school-registration-over-capacity {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
   font-weight: 800;
 }
 

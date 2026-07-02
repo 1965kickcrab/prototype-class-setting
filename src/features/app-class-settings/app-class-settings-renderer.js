@@ -117,7 +117,7 @@ function formatOptionalValue(value) {
 }
 
 function formatCapacity(capacity) {
-  return capacity ? `${capacity}명` : "-";
+  return capacity ? `${capacity}마리` : "-";
 }
 
 function formatBusinessDays(businessDays) {

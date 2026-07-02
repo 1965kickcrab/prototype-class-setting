@@ -20,7 +20,6 @@ Source of truth for audience/runtime scope: `project-profile.json`
 - `member-detail.html`: member detail screen; boots `src/platforms/member-detail.js`.
 - `member-edit.html`: member edit screen; boots `src/platforms/member-edit.js`.
 - `member-tag-management.html`: member tag management screen; boots `src/platforms/member-tag-management.js`.
-- `more.html`: Web more/settings menu screen; boots `src/platforms/more.js`.
 - `school-reservation-create.html`: school reservation create flow; boots `src/platforms/school-reservation-create.js`.
 - `school-reservation-detail.html`: school reservation detail flow; boots `src/platforms/school-reservation-detail.js`.
 - `school-reservation-member-search.html`: school reservation member search flow; boots `src/platforms/school-reservation-member-search.js`.
@@ -99,13 +98,11 @@ Source of truth for audience/runtime scope: `project-profile.json`
 - `styles/pages/member-home.css`: member home, detail, edit, and tag management styles.
 - `styles/pages/member-registration.css`: member registration/edit form styles.
 
-### More and Report
+### App More and Report
 
-- `src/features/more/more-renderer.js`: Web more/settings menu renderer.
 - `src/features/report/report-renderer.js`: App/Web report list renderer and report entry storage access.
 - `src/platforms/report-create.js`: report compose page behavior for selected pet summary, Web pet selection modal, Web selected-pet preview rendering, and reset handling.
 - `src/platforms/report-pet-select.js`: report pet selection, reservation/class filtering, and selection persistence.
-- `styles/pages/more.css`: Web more/settings menu styles.
 - `styles/pages/app-more.css`: static App more/settings menu styles.
 - `styles/pages/report.css`: App/Web report list, compose, and pet selection styles.
 
