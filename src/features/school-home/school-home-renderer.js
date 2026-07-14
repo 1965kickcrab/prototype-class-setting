@@ -2,7 +2,7 @@
 import { createBusinessNavigation, createDefaultAppBottomNavigation } from "../../components/navigation.js";
 import { createReservationSearchFilter } from "../../components/reservation-search-filter.js";
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
-import { getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
+import { createSchoolClassSnapshot, getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
 import { addMemberPetToSchoolClass, getMemberPetRows } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
 import { createElement } from "../../utils/dom.js";
@@ -31,6 +31,7 @@ const CHECK_ICON_PATH = "assets/icons/iconCheck.svg";
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const OTHER_CLASS_GROUP_ID = "__other__";
 const OTHER_CLASS_LABEL = "기타";
+const DELETED_CLASS_GROUP_PREFIX = "deleted-class:";
 const REGISTRATION_CLASS_WEEKDAYS = [
   { key: "mon", label: "월" },
   { key: "tue", label: "화" },
@@ -360,7 +361,7 @@ function createCalendarGrid(schoolHomeState, platform) {
   const weekHeader = createElement("div", { className: "calendar-weekdays" });
   ["일", "월", "화", "수", "목", "금", "토"].forEach((dayLabel, dayIndex) => {
     weekHeader.append(createElement("span", {
-      className: dayIndex === 0 ? "calendar-weekday is-holiday" : "calendar-weekday",
+      className: dayIndex === 0 || dayIndex === 6 ? "calendar-weekday is-weekend" : "calendar-weekday",
       textContent: dayLabel,
     }));
   });
@@ -403,7 +404,7 @@ function createCalendarDateButton(schoolHomeState, cell, platform) {
   if (platform === "web") {
     button.append(...createWebCalendarDateContent(schoolHomeState, cell.dayNumber, reservations, cell.isHoliday));
   } else {
-    button.append(...createAppCalendarDateContent(cell.dayNumber, reservationCount, getSchoolCapacityCount()));
+    button.append(...createAppCalendarDateContent(cell.dayNumber, reservationCount, getSchoolCapacityCount(), cell.isHoliday));
   }
 
   button.addEventListener("click", () => {
@@ -421,15 +422,13 @@ function createWebCalendarDateContent(schoolHomeState, dayNumber, reservations, 
   const content = [];
   const dateBox = createElement("span", { className: "calendar-date-box" });
   dateBox.append(createElement("span", { className: "calendar-date-number", textContent: String(dayNumber) }));
-  content.push(dateBox);
-
-  if (isHoliday && reservationCount > 0) {
-    content.push(createElement("span", {
-      className: "calendar-meta",
-      textContent: `휴무 (예약 ${reservationCount}건)`,
+  if (isHoliday) {
+    dateBox.append(createElement("span", {
+      className: "calendar-date-holiday is-holiday",
+      textContent: "휴무",
     }));
-    return content;
   }
+  content.push(dateBox);
 
   if (reservationCount > 0) {
     content.push(createCalendarClassSummary(schoolHomeState, reservations));
@@ -470,11 +469,18 @@ function createCalendarClassCountBadge(classGroup) {
   return badge;
 }
 
-function createAppCalendarDateContent(dayNumber, reservationCount, capacityCount) {
+function createAppCalendarDateContent(dayNumber, reservationCount, capacityCount, isHoliday = false) {
   const content = [];
   const dateBox = createElement("span", { className: "calendar-date-box", dataset: { platform: "app" } });
   dateBox.append(createElement("span", { className: "calendar-date-number", textContent: String(dayNumber) }));
+  if (isHoliday) {
+    dateBox.append(createElement("span", {
+      className: "calendar-date-holiday is-holiday",
+      textContent: "휴무",
+    }));
+  }
   content.push(dateBox);
+
   content.push(createElement("span", {
     className: "calendar-capacity-text",
     textContent: `${reservationCount}/${capacityCount}`,
@@ -780,6 +786,7 @@ function createWebReservationClassMenu(schoolHomeState, reservation) {
       className: "school-reservation-class-options",
       dataset: { area: "reservationClassOptions", entityId: reservation.id },
     });
+    menu.append(createWebReservationClassOption(schoolHomeState, reservation, null));
     loadSchoolClassList().forEach((schoolClass) => {
       menu.append(createWebReservationClassOption(schoolHomeState, reservation, schoolClass));
     });
@@ -790,15 +797,16 @@ function createWebReservationClassMenu(schoolHomeState, reservation) {
 }
 
 function createWebReservationClassOption(schoolHomeState, reservation, schoolClass) {
-  const isSelected = reservation.classId === schoolClass.id;
+  const classId = schoolClass?.id || "";
+  const isSelected = String(reservation.classId || "") === classId;
   const button = createElement("button", {
     className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
     type: "button",
-    textContent: schoolClass.name || "-",
+    textContent: schoolClass?.name || "미지정",
     dataset: {
       action: "selectReservationClass",
       entityId: reservation.id,
-      classId: schoolClass.id,
+      classId,
       state: isSelected ? "selected" : "idle",
     },
   });
@@ -817,8 +825,9 @@ function updateReservationClass(schoolHomeState, reservationId, schoolClass) {
 
     return {
       ...reservation,
-      classId: schoolClass.id,
-      className: schoolClass.name || "",
+      classId: schoolClass?.id || null,
+      className: schoolClass?.name || "",
+      classSnapshot: createSchoolClassSnapshot(schoolClass),
     };
   });
   schoolHomeState.activeClassMenuReservationId = "";
@@ -941,7 +950,7 @@ function getAppClassTabs(summary) {
 
     classTabs.push({
       id: classId,
-      name: OTHER_CLASS_LABEL,
+      name: getReservationClassGroupName(summary.reservations, classId),
       count,
     });
   });
@@ -951,7 +960,17 @@ function getAppClassTabs(summary) {
 
 function getReservationClassGroupId(reservation) {
   const classId = String(reservation?.classId || "").trim();
-  return hasSchoolClassDefinition(classId) ? classId : OTHER_CLASS_GROUP_ID;
+  if (hasSchoolClassDefinition(classId)) {
+    return classId;
+  }
+
+  const snapshotId = String(reservation?.classSnapshot?.id || "").trim();
+  return snapshotId ? `${DELETED_CLASS_GROUP_PREFIX}${snapshotId}` : OTHER_CLASS_GROUP_ID;
+}
+
+function getReservationClassGroupName(reservations, groupId) {
+  const reservation = (reservations || []).find((item) => getReservationClassGroupId(item) === groupId);
+  return reservation ? getReservationClassName(reservation) : OTHER_CLASS_LABEL;
 }
 
 function hasActiveReservationFilters(schoolHomeState) {
@@ -1165,7 +1184,7 @@ function createRegistrationClassField(schoolHomeState) {
     className: "school-registration-input school-registration-class-select",
     dataset: { field: "classId" },
   });
-  select.append(createElement("option", { value: "", textContent: "클래스 선택" }));
+  select.append(createElement("option", { value: "", textContent: "미지정" }));
   loadSchoolClassList().forEach((schoolClass) => {
     const option = createElement("option", {
       value: schoolClass.id,
@@ -1368,14 +1387,13 @@ function closeReservationRegistrationModal(schoolHomeState) {
 }
 
 function canSelectReservationRegistrationDate(state) {
-  return Boolean(state.selectedMemberPet && state.selectedClassId);
+  return Boolean(state.selectedMemberPet);
 }
 
 function canSubmitReservationRegistration(schoolHomeState) {
   const state = schoolHomeState.reservationRegistration;
   return Boolean(
     state.selectedMemberPet
-    && state.selectedClassId
     && state.selectedDates.length > 0
     && !hasReservationRegistrationCapacityExceeded(schoolHomeState)
   );
@@ -1411,17 +1429,13 @@ function submitReservationRegistration(schoolHomeState) {
     errors.member = "회원을 선택해 주세요.";
   }
 
-  if (!selectedClass) {
-    errors.classId = "클래스를 선택해 주세요.";
-  }
-
   if (!state.selectedDates.length) {
     errors.selectedDates = "예약 날짜를 선택해 주세요.";
   }
 
-  if (selectedMemberPet && selectedClass) {
+  if (selectedMemberPet) {
     const duplicateDates = state.selectedDates.filter((dateKey) => {
-      return isExistingReservationDate(schoolHomeState, dateKey, selectedClass.id);
+      return isExistingReservationDate(schoolHomeState, dateKey, state.selectedClassId);
     });
 
     if (duplicateDates.length) {
@@ -1442,11 +1456,13 @@ function submitReservationRegistration(schoolHomeState) {
   const newReservations = state.selectedDates.map((dateKey) => {
     return createReservationFromSelection(dateKey, selectedClass, selectedMemberPet);
   });
-  schoolHomeState.members = addMemberPetToSchoolClass(
-    selectedMemberPet.memberId || selectedMemberPet.id,
-    selectedMemberPet.petId,
-    selectedClass.id,
-  );
+  if (selectedClass) {
+    schoolHomeState.members = addMemberPetToSchoolClass(
+      selectedMemberPet.memberId || selectedMemberPet.id,
+      selectedMemberPet.petId,
+      selectedClass.id,
+    );
+  }
   appendStoredSchoolReservations(newReservations);
   schoolHomeState.reservations = [...schoolHomeState.reservations, ...newReservations];
   schoolHomeState.selectedDate = state.selectedDates[0] || schoolHomeState.selectedDate;
@@ -1457,8 +1473,9 @@ function createReservationFromSelection(dateKey, schoolClass, memberPet) {
   return {
     id: createSchoolReservationId(),
     date: dateKey,
-    classId: schoolClass.id,
-    className: schoolClass.name,
+    classId: schoolClass?.id || null,
+    className: schoolClass?.name || "",
+    classSnapshot: createSchoolClassSnapshot(schoolClass),
     memberId: memberPet.memberId || memberPet.id,
     petId: memberPet.petId,
     petName: memberPet.petName || memberPet.dogName || "",
@@ -1516,7 +1533,7 @@ function getAutoSelectedMemberSchoolClassId(memberPet) {
 function isExistingReservationDate(schoolHomeState, dateKey, classId = schoolHomeState.reservationRegistration.selectedClassId) {
   const selectedMemberPet = schoolHomeState.reservationRegistration.selectedMemberPet;
   const selectedClassId = String(classId || "").trim();
-  if (!selectedMemberPet || !selectedClassId) {
+  if (!selectedMemberPet) {
     return false;
   }
 
@@ -1526,7 +1543,7 @@ function isExistingReservationDate(schoolHomeState, dateKey, classId = schoolHom
     return reservation.date === dateKey
       && reservation.memberId === memberId
       && reservation.petId === petId
-      && reservation.classId === selectedClassId;
+      && String(reservation.classId || "") === selectedClassId;
   });
 }
 
@@ -1715,7 +1732,7 @@ function getReservationClassGroups(reservations) {
   (reservations || []).forEach((reservation) => {
     const classId = String(reservation.classId || "").trim();
     const groupId = getReservationClassGroupId(reservation);
-    const hasClassDefinition = groupId !== OTHER_CLASS_GROUP_ID;
+    const hasClassDefinition = hasSchoolClassDefinition(classId);
     const currentGroup = classGroups.get(groupId) || {
       id: groupId,
       name: getReservationClassName(reservation),
@@ -1735,6 +1752,11 @@ function getReservationClassGroups(reservations) {
 function getReservationClassName(reservation) {
   if (getReservationClassGroupId(reservation) === OTHER_CLASS_GROUP_ID) {
     return OTHER_CLASS_LABEL;
+  }
+
+  if (!String(reservation?.classId || "").trim()) {
+    const snapshotName = String(reservation?.classSnapshot?.name || "").trim();
+    return snapshotName ? `${snapshotName} (삭제됨)` : OTHER_CLASS_LABEL;
   }
 
   return reservation.className || getClassNameById(reservation.classId) || "미지정";

@@ -285,10 +285,6 @@ function createTagSearchControl(state, options) {
     dataset: { state: state.selectedMemberTagNames?.length ? "selected" : "empty" },
   });
 
-  if (state.selectedMemberTagNames?.length) {
-    control.append(createSelectedTagChipList(state, options));
-  }
-
   const input = createElement("input", {
     className: "member-tag-search-input",
     type: "text",
@@ -391,45 +387,9 @@ function focusReservationTagSearchInput(options = {}) {
   }, 0);
 }
 
-function createSelectedTagChipList(state, options) {
-  const chipList = createElement("div", {
-    className: "member-tag-search-selected",
-    dataset: { area: "selectedMemberTags" },
-  });
-
-  state.selectedMemberTagNames.forEach((memberTagName) => {
-    const chip = createElement("span", {
-      className: "member-tag-input-chip",
-      dataset: { entity: "memberTag", entityId: memberTagName },
-    });
-    chip.append(createElement("span", { textContent: memberTagName }));
-    const removeButton = createElement("button", {
-      className: "member-tag-chip-remove",
-      type: "button",
-      textContent: "×",
-      ariaLabel: `${memberTagName} 태그 삭제`,
-    });
-    removeButton.addEventListener("click", () => {
-      state.selectedMemberTagNames = state.selectedMemberTagNames.filter((selectedTagName) => {
-        return String(selectedTagName || "").trim().toLowerCase() !== String(memberTagName || "").trim().toLowerCase();
-      });
-      options.rerender(state);
-    });
-    chip.append(removeButton);
-    chipList.append(chip);
-  });
-
-  return chipList;
-}
-
 function getVisibleReservationTags(state) {
   const query = String(state.tagFilterQuery || "").trim().toLowerCase();
-  const selectedTagNames = new Set((state.selectedMemberTagNames || []).map((memberTagName) => {
-    return String(memberTagName || "").trim().toLowerCase();
-  }));
-  const memberTags = sortMemberTagNames(state.memberTagCatalog || []).filter((memberTagName) => {
-    return !selectedTagNames.has(String(memberTagName || "").trim().toLowerCase());
-  });
+  const memberTags = sortMemberTagNames(state.memberTagCatalog || []);
 
   if (!query) {
     return memberTags;
@@ -444,10 +404,7 @@ function getSelectedTagSummary(state) {
   if (!state.selectedMemberTagNames.length) {
     return "태그";
   }
-  if (state.selectedMemberTagNames.length === 1) {
-    return state.selectedMemberTagNames[0];
-  }
-  return `${state.selectedMemberTagNames[0]} +${state.selectedMemberTagNames.length - 1}`;
+  return `태그 (${state.selectedMemberTagNames.length})`;
 }
 
 function createTagEmptyState(title) {

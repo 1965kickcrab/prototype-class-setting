@@ -1,5 +1,5 @@
 import { getSchoolHomeReservations, loadStoredSchoolReservations, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
-import { loadSchoolClassList } from "../../storage/class-storage.js";
+import { createSchoolClassSnapshot, loadSchoolClassList } from "../../storage/class-storage.js";
 import { createElement } from "../../utils/dom.js";
 
 const DEFAULT_DOG_PROFILE_IMAGE = "assets/images/defaultProfile_dog.svg";
@@ -80,7 +80,7 @@ function createDetailContent(reservation) {
 
   const classSection = createElement("section", { className: "school-reservation-detail-section" });
   classSection.append(createElement("h2", { textContent: "클래스" }));
-  classSection.append(createInfoBox(reservation.className || "-", "class", reservation));
+  classSection.append(createInfoBox(getReservationClassLabel(reservation), "class", reservation));
   content.append(classSection);
 
   const dateSection = createElement("section", { className: "school-reservation-detail-section" });
@@ -130,6 +130,21 @@ function createInfoBox(text, type, reservation = null) {
     });
   }
   return infoBox;
+}
+
+function getReservationClassLabel(reservation) {
+  if (reservation.classId) {
+    return reservation.classSnapshot?.name || reservation.className || "-";
+  }
+
+  const snapshotName = reservation.classSnapshot?.name || "";
+  if (!snapshotName) {
+    return "미지정";
+  }
+
+  const capacity = reservation.classSnapshot?.capacity;
+  const capacityLabel = Number.isInteger(capacity) ? ` · 당시 정원 ${capacity}명` : "";
+  return `${snapshotName} (삭제됨)${capacityLabel}`;
 }
 
 function createTagList(tags) {
@@ -183,26 +198,32 @@ function createClassBottomSheet(reservation) {
   sheet.append(header);
 
   const list = createElement("div", { className: "school-reservation-class-sheet-list" });
+  list.append(createReservationClassOption(reservation, null));
   loadSchoolClassList().forEach((schoolClass) => {
-    const isSelected = reservation.classId === schoolClass.id;
-    const option = createElement("button", {
-      className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
-      type: "button",
-      textContent: schoolClass.name || "-",
-      dataset: {
-        action: "selectReservationClass",
-        classId: schoolClass.id,
-        state: isSelected ? "selected" : "idle",
-      },
-    });
-    option.addEventListener("click", () => {
-      updateReservationClass(reservation.id, schoolClass);
-    });
-    list.append(option);
+    list.append(createReservationClassOption(reservation, schoolClass));
   });
   sheet.append(list);
   overlay.append(sheet);
   return overlay;
+}
+
+function createReservationClassOption(reservation, schoolClass) {
+  const classId = schoolClass?.id || "";
+  const isSelected = String(reservation.classId || "") === classId;
+  const option = createElement("button", {
+    className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
+    type: "button",
+    textContent: schoolClass?.name || "미지정",
+    dataset: {
+      action: "selectReservationClass",
+      classId,
+      state: isSelected ? "selected" : "idle",
+    },
+  });
+  option.addEventListener("click", () => {
+    updateReservationClass(reservation.id, schoolClass);
+  });
+  return option;
 }
 
 function closeClassBottomSheet() {
@@ -218,8 +239,9 @@ function updateReservationClass(reservationId, schoolClass) {
 
     return {
       ...reservation,
-      classId: schoolClass.id,
-      className: schoolClass.name || "",
+      classId: schoolClass?.id || null,
+      className: schoolClass?.name || "",
+      classSnapshot: createSchoolClassSnapshot(schoolClass),
     };
   });
   saveStoredSchoolReservations(reservations);

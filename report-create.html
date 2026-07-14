@@ -10,10 +10,14 @@
   </head>
   <body>
     <main class="web-report-compose-shell" data-screen="webReportCompose" data-platform="web">
-      <header class="member-header web-report-header" data-area="header">
+      <header class="web-global-header web-report-header" data-area="header" data-platform="web">
         <strong class="brand-name">다이얼독 비즈</strong>
         <h1>알림장 작성</h1>
-        <span class="header-utility">설정  알림  계정</span>
+        <div class="header-utility" data-area="headerUtility">
+          <button class="header-utility-button" type="button" data-action="openCenterSettings">설정</button>
+          <button class="header-utility-button" type="button" data-action="openNotifications">알림</button>
+          <button class="header-utility-button" type="button" data-action="openAccount">계정</button>
+        </div>
       </header>
 
       <div class="web-report-layout">

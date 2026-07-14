@@ -1,5 +1,5 @@
 import { readJsonStorage, writeJsonStorage } from "./storage-utils.js";
-import { getSchoolHomeReservationMembers } from "./school-home-storage.js";
+import { getDefaultMemberList } from "./default-member-list.js";
 import {
   applyCatalogDrafts,
   mergeTagCatalog,
@@ -11,16 +11,13 @@ import {
 import { normalizePhoneNumber } from "../utils/phone.js";
 
 export const MEMBER_LIST_STORAGE_KEY = "memberList";
-export const LEGACY_MEMBER_LIST_STORAGE_KEY = "prototype.memberTags.memberList";
 export const DELETED_MEMBER_IDS_STORAGE_KEY = "prototype.memberTags.deletedMemberIds";
-export const LEGACY_MEMBER_TAG_CATALOG_STORAGE_KEY = "prototype.memberTags.memberTagCatalog";
 export const MEMBER_TAG_CATALOG_STORAGE_KEY = "memberTagCatalog";
 
 export function getStoredMembers() {
   const deletedMemberIds = loadDeletedMemberIds();
   const normalizedMembers = normalizeStoredMembers([
-    ...getSchoolHomeReservationMembers(),
-    ...readMemberListStorage(LEGACY_MEMBER_LIST_STORAGE_KEY),
+    ...getDefaultMemberList(),
     ...readMemberListStorage(MEMBER_LIST_STORAGE_KEY),
   ]).filter((member) => !deletedMemberIds.includes(member.id));
 
@@ -34,12 +31,9 @@ export function getStoredMemberTagCatalog() {
 
 export function loadMemberTagCatalog() {
   const storedMemberTagCatalog = readJsonStorage(MEMBER_TAG_CATALOG_STORAGE_KEY, null);
-  const legacyMemberTagCatalog = readJsonStorage(LEGACY_MEMBER_TAG_CATALOG_STORAGE_KEY, []);
   const catalogSource = Array.isArray(storedMemberTagCatalog)
     ? storedMemberTagCatalog
-    : Array.isArray(legacyMemberTagCatalog) && legacyMemberTagCatalog.length
-      ? legacyMemberTagCatalog
-      : getDefaultMemberTagCatalog();
+    : getDefaultMemberTagCatalog();
 
   if (!Array.isArray(catalogSource)) {
     return [];
@@ -372,7 +366,7 @@ function loadDeletedMemberIds() {
 }
 
 function getDefaultMemberIds() {
-  return normalizeStoredMembers(getSchoolHomeReservationMembers()).map((member) => member.id);
+  return normalizeStoredMembers(getDefaultMemberList()).map((member) => member.id);
 }
 
 function mergeUniqueValues(values) {
@@ -540,7 +534,7 @@ function normalizeSchoolClassIds(schoolClassIds) {
 }
 
 function getDefaultMemberTagCatalog() {
-  return getSchoolHomeReservationMembers().flatMap((member) => {
+  return getDefaultMemberList().flatMap((member) => {
     return [
       ...(member.ownerTags || []),
       ...(member.pets || []).flatMap((pet) => pet.petTags || []),

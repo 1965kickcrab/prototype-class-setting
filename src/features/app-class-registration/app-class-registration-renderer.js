@@ -260,13 +260,16 @@ function createClassMemberField(rootElement) {
   const selectedMemberPetKeys = new Set(registrationState.draft.memberPetKeys || []);
   const label = createElement("div", { className: "app-class-member-label" });
   label.append(createElement("span", { className: "app-class-form-label", textContent: "소속 회원" }));
-  label.append(createElement("strong", {
+  const memberPets = getMemberPetRows(getStoredMembers());
+  const actions = createElement("div", { className: "app-class-member-actions" });
+  actions.append(createElement("strong", {
     className: "app-class-member-count",
     textContent: `${selectedMemberPetKeys.size}마리 선택`,
   }));
+  actions.append(createMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys));
+  label.append(actions);
   field.append(label);
 
-  const memberPets = getMemberPetRows(getStoredMembers());
   if (memberPets.length === 0) {
     field.append(createElement("p", {
       className: "app-class-member-empty",
@@ -336,6 +339,32 @@ function createClassMemberList(rootElement, memberPets) {
   });
 
   return list;
+}
+
+function createMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys) {
+  const isAllSelected = areAllMemberPetsSelected(memberPets, selectedMemberPetKeys);
+  const button = createElement("button", {
+    className: "app-class-member-select-all-button",
+    type: "button",
+    textContent: isAllSelected ? "전체 해제" : "전체 선택",
+    dataset: { action: "toggleAllClassMembers", state: isAllSelected ? "selected" : "idle" },
+  });
+  button.disabled = memberPets.length === 0;
+  button.addEventListener("click", () => {
+    registrationState.draft.memberPetKeys = isAllSelected ? [] : getMemberPetKeys(memberPets);
+    rerender(rootElement);
+  });
+  return button;
+}
+
+function areAllMemberPetsSelected(memberPets, selectedMemberPetKeys) {
+  return memberPets.length > 0 && getMemberPetKeys(memberPets).every((memberPetKey) => {
+    return selectedMemberPetKeys.has(memberPetKey);
+  });
+}
+
+function getMemberPetKeys(memberPets) {
+  return memberPets.map((memberPet) => getMemberPetKey(memberPet.memberId, memberPet.petId));
 }
 
 function submitClassRegistration(rootElement) {

@@ -1,4 +1,4 @@
-import { loadSchoolClassList } from "../../storage/class-storage.js";
+import { createSchoolClassSnapshot, loadSchoolClassList } from "../../storage/class-storage.js";
 import { addMemberPetToSchoolClass } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeReservations } from "../../storage/school-home-storage.js";
 import { getCalendarMatrix, getMonthLabel, shiftMonth } from "../school-home/school-home-state.js";
@@ -88,26 +88,32 @@ function createClassSection(rootElement, draft) {
 
   const classList = loadSchoolClassList();
   const list = createElement("div", { className: "school-reservation-class-list" });
+  list.append(createClassOption(rootElement, draft, null));
   classList.forEach((schoolClass) => {
-    const isSelected = draft.selectedClassId === schoolClass.id;
-    const button = createElement("button", {
-      className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
-      type: "button",
-      textContent: schoolClass.name || "-",
-      dataset: { action: "selectClass", entityId: schoolClass.id, state: isSelected ? "selected" : "idle" },
-    });
-    button.addEventListener("click", () => {
-      draft.selectedClassId = schoolClass.id;
-      draft.selectedDates = draft.selectedDates.filter((dateKey) => {
-        return !isExistingReservationDate(draft, dateKey) && canKeepReservationDate(draft, dateKey);
-      });
-      saveSchoolReservationDraft(draft);
-      renderSchoolReservationCreate(rootElement);
-    });
-    list.append(button);
+    list.append(createClassOption(rootElement, draft, schoolClass));
   });
   section.append(list);
   return section;
+}
+
+function createClassOption(rootElement, draft, schoolClass) {
+  const classId = schoolClass?.id || "";
+  const isSelected = draft.selectedClassId === classId;
+  const button = createElement("button", {
+    className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
+    type: "button",
+    textContent: schoolClass?.name || "미지정",
+    dataset: { action: "selectClass", entityId: classId, state: isSelected ? "selected" : "idle" },
+  });
+  button.addEventListener("click", () => {
+    draft.selectedClassId = classId;
+    draft.selectedDates = draft.selectedDates.filter((dateKey) => {
+      return !isExistingReservationDate(draft, dateKey) && canKeepReservationDate(draft, dateKey);
+    });
+    saveSchoolReservationDraft(draft);
+    renderSchoolReservationCreate(rootElement);
+  });
+  return button;
 }
 
 function createDateSection(rootElement, draft) {
@@ -259,10 +265,7 @@ function submitReservation(rootElement, draft) {
     return;
   }
 
-  const selectedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === draft.selectedClassId);
-  if (!selectedClass) {
-    return;
-  }
+  const selectedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === draft.selectedClassId) || null;
 
   if (hasDuplicateReservationDates(draft) || hasReservationCapacityExceeded(draft)) {
     return;
@@ -271,7 +274,9 @@ function submitReservation(rootElement, draft) {
   const reservations = draft.selectedDates.map((dateKey) => {
     return createReservationFromDraft(dateKey, selectedClass, draft.memberPet);
   });
-  addMemberPetToSchoolClass(draft.memberPet.memberId || draft.memberPet.id, draft.memberPet.petId, selectedClass.id);
+  if (selectedClass) {
+    addMemberPetToSchoolClass(draft.memberPet.memberId || draft.memberPet.id, draft.memberPet.petId, selectedClass.id);
+  }
   appendStoredSchoolReservations(reservations);
   clearSchoolReservationDraft();
   window.location.href = "./index.html";
@@ -281,8 +286,9 @@ function createReservationFromDraft(dateKey, schoolClass, memberPet) {
   return {
     id: createSchoolReservationId(),
     date: dateKey,
-    classId: schoolClass.id,
-    className: schoolClass.name,
+    classId: schoolClass?.id || null,
+    className: schoolClass?.name || "",
+    classSnapshot: createSchoolClassSnapshot(schoolClass),
     memberId: memberPet.memberId || memberPet.id,
     petId: memberPet.petId,
     petName: memberPet.petName || memberPet.dogName || "",
@@ -306,11 +312,11 @@ function createReservationFromDraft(dateKey, schoolClass, memberPet) {
 }
 
 function isReservationDraftReady(draft) {
-  return Boolean(draft.memberPet && draft.selectedClassId && draft.selectedDates.length);
+  return Boolean(draft.memberPet && draft.selectedDates.length);
 }
 
 function isReservationDraftReadyForDateChecks(draft) {
-  return Boolean(draft.memberPet && draft.selectedClassId);
+  return Boolean(draft.memberPet);
 }
 
 function hasDuplicateReservationDates(draft) {
@@ -318,7 +324,7 @@ function hasDuplicateReservationDates(draft) {
 }
 
 function isExistingReservationDate(draft, dateKey) {
-  if (!draft.memberPet || !draft.selectedClassId) {
+  if (!draft.memberPet) {
     return false;
   }
 
@@ -328,7 +334,7 @@ function isExistingReservationDate(draft, dateKey) {
     return reservation.date === dateKey
       && reservation.memberId === memberId
       && reservation.petId === petId
-      && reservation.classId === draft.selectedClassId;
+      && String(reservation.classId || "") === String(draft.selectedClassId || "");
   });
 }
 

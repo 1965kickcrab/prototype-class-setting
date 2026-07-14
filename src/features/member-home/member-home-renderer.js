@@ -1,19 +1,16 @@
 ﻿import { createEmptyStateElement } from "../../components/empty-state.js";
 import { createHeaderIconButton } from "../../components/header-icon-button.js";
-import { renderMemberTagChips } from "../../components/member-tag-chips.js";
 import { initTagInput } from "../../components/member-tag-input.js";
 import { createBusinessNavigation, createDefaultAppBottomNavigation } from "../../components/navigation.js";
 import { createToast, TOAST_AUTO_DISMISS_MS } from "../../components/toast.js";
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { ACTION_BUTTON_STATE } from "../../constants/ui-state.js";
-import { sanitizeTagList } from "../../services/member-tag-service.js";
 import { getMemberPetRows } from "../../storage/member-storage.js";
 import { loadSchoolClassList } from "../../storage/class-storage.js";
 import { createElement } from "../../utils/dom.js";
 import { formatText } from "../../utils/format.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
 import { formatPhoneNumber, normalizePhoneNumber } from "../../utils/phone.js";
-import { createMemberDetailScreen } from "./member-home-detail-renderer.js";
 import { createMemberTagManagementModal } from "./member-home-tag-management-renderer.js";
 import { getFilteredMembers, getMemberListState } from "./member-home-state.js";
 
@@ -29,17 +26,6 @@ export function renderMemberHome(rootElement, memberHomeState) {
 
   if (memberHomeState.activeScreen === "memberEdit") {
     rootElement.append(createMemberEditScreen(memberHomeState));
-    scheduleToastDismiss(memberHomeState);
-    return;
-  }
-
-  if (memberHomeState.activeScreen === "memberDetail") {
-    rootElement.append(createMemberDetailScreen(memberHomeState, {
-      createHeader,
-      createNavigation,
-      getReservationAvailability,
-      rerender,
-    }));
     scheduleToastDismiss(memberHomeState);
     return;
   }
@@ -457,8 +443,13 @@ function handleGuardianLookup(memberHomeState) {
   memberHomeState.isMemberRegistrationPageOpen = false;
 
   if (matchedByPhone && matchedByPhone.isRegistered) {
-    memberHomeState.activeScreen = isMobileLayout() ? "memberEdit" : "memberDetail";
-    memberHomeState.toastMessage = "이미 등록된 회원입니다. 반려견 정보를 확인해 주세요.";
+    if (isMobileLayout()) {
+      memberHomeState.activeScreen = "memberEdit";
+      memberHomeState.toastMessage = "이미 등록된 회원입니다. 반려견 정보를 확인해 주세요.";
+      return false;
+    }
+
+    window.location.href = createMemberDetailUrl(matchedByPhone, { toast: "registered" });
     return false;
   }
 
@@ -484,7 +475,7 @@ function createMemberRegistrationUrl(member, matchedByPhone) {
   return `./member-registration.html?${queryParams.toString()}`;
 }
 
-function createMemberDetailUrl(member) {
+function createMemberDetailUrl(member, options = {}) {
   const queryParams = new URLSearchParams();
 
   if (member?.id) {
@@ -493,6 +484,10 @@ function createMemberDetailUrl(member) {
 
   if (member?.petId) {
     queryParams.set("petId", member.petId);
+  }
+
+  if (options.toast) {
+    queryParams.set("toast", options.toast);
   }
 
   return `./member-detail.html?${queryParams.toString()}`;
@@ -528,12 +523,6 @@ function createMemberProfileFlowScreen({ memberHomeState, screenName, title, pri
   }
 
   return screen;
-}
-
-function resetMemberDetailViewState(memberHomeState) {
-  memberHomeState.activeMemberDetailTab = "memberInfo";
-  memberHomeState.isDetailInfoExpanded = false;
-  memberHomeState.isDetailMemoExpanded = false;
 }
 
 function createProfileFlowHeader(memberHomeState, title) {
@@ -628,7 +617,7 @@ function createWebFilterToggle(memberHomeState) {
       state: memberHomeState.isFilterPanelOpen ? "open" : "closed",
     },
     childNodes: [
-      createElement("span", { textContent: "필터" }),
+      createElement("span", { textContent: getFilterToggleSummary(memberHomeState) }),
       createFoldIcon(memberHomeState.isFilterPanelOpen),
     ],
   });
@@ -947,10 +936,6 @@ function createTagSearchControl(memberHomeState, options = {}) {
     dataset: { state: memberHomeState.selectedMemberTagNames.length ? "selected" : "empty" },
   });
 
-  if (memberHomeState.selectedMemberTagNames.length) {
-    control.append(createSelectedTagChipList(memberHomeState));
-  }
-
   const input = createElement("input", {
     className: options.inputClassName || "member-tag-search-input",
     type: "text",
@@ -1061,37 +1046,6 @@ function focusTagSearchInput(selector) {
   }, 0);
 }
 
-function createSelectedTagChipList(memberHomeState) {
-  const chipList = createElement("div", {
-    className: "member-tag-search-selected",
-    dataset: { area: "selectedMemberTags" },
-  });
-
-  memberHomeState.selectedMemberTagNames.forEach((memberTagName) => {
-    const chip = createElement("span", {
-      className: "member-tag-input-chip",
-      dataset: { entity: "memberTag", entityId: memberTagName },
-    });
-    chip.append(createElement("span", { textContent: memberTagName }));
-    const removeButton = createElement("button", {
-      className: "member-tag-chip-remove",
-      type: "button",
-      textContent: "×",
-      ariaLabel: `${memberTagName} 태그 삭제`,
-      dataset: { action: "removeSelectedMemberTag" },
-    });
-    removeButton.addEventListener("click", () => {
-      toggleSelectedMemberTag(memberHomeState, memberTagName);
-      memberHomeState.currentPage = 1;
-      rerender(memberHomeState);
-    });
-    chip.append(removeButton);
-    chipList.append(chip);
-  });
-
-  return chipList;
-}
-
 function createMemberSearchInput(memberHomeState, className) {
   let isComposing = false;
   const searchInput = createElement("input", {
@@ -1194,12 +1148,7 @@ function createClassOptionButton(memberHomeState, schoolClass) {
 
 function getVisibleMemberTags(memberHomeState) {
   const query = normalizeLookupText(memberHomeState.tagFilterQuery).toLowerCase();
-  const selectedTagNames = new Set((memberHomeState.selectedMemberTagNames || []).map((memberTagName) => {
-    return String(memberTagName || "").trim().toLowerCase();
-  }));
-  const memberTags = (memberHomeState.memberTagCatalog || []).filter((memberTagName) => {
-    return !selectedTagNames.has(String(memberTagName || "").trim().toLowerCase());
-  });
+  const memberTags = memberHomeState.memberTagCatalog || [];
 
   if (!query) {
     return memberTags;
@@ -1260,20 +1209,7 @@ function getSelectedSchoolClassSummary(memberHomeState) {
     return "클래스";
   }
 
-  const schoolClassList = loadSchoolClassList();
-  const selectedClassNames = selectedSchoolClassIds
-    .map((classId) => schoolClassList.find((schoolClass) => schoolClass.id === classId)?.name)
-    .filter(Boolean);
-
-  if (selectedClassNames.length === 0) {
-    return "클래스";
-  }
-
-  if (selectedClassNames.length === 1) {
-    return selectedClassNames[0];
-  }
-
-  return `${selectedClassNames[0]} +${selectedClassNames.length - 1}`;
+  return `클래스 (${selectedSchoolClassIds.length})`;
 }
 
 function getSelectedTagSummary(memberHomeState) {
@@ -1281,18 +1217,25 @@ function getSelectedTagSummary(memberHomeState) {
     return "태그";
   }
 
-  if (memberHomeState.selectedMemberTagNames.length === 1) {
-    return memberHomeState.selectedMemberTagNames[0];
-  }
-
-  return `${memberHomeState.selectedMemberTagNames[0]} +${memberHomeState.selectedMemberTagNames.length - 1}`;
+  return `태그 (${memberHomeState.selectedMemberTagNames.length})`;
 }
 
 function hasActiveMemberFilters(memberHomeState) {
-  return Boolean(
-    (memberHomeState.selectedMemberTagNames || []).length
-    || (memberHomeState.selectedSchoolClassIds || []).length
-  );
+  return getActiveMemberFilterCount(memberHomeState) > 0;
+}
+
+function getFilterToggleSummary(memberHomeState) {
+  const activeFilterCount = getActiveMemberFilterCount(memberHomeState);
+  return activeFilterCount ? `필터 (${activeFilterCount})` : "필터";
+}
+
+function getActiveMemberFilterCount(memberHomeState) {
+  return [
+    memberHomeState.selectedMemberTagNames,
+    memberHomeState.selectedSchoolClassIds,
+  ].filter((selectedValues) => {
+    return (selectedValues || []).length > 0;
+  }).length;
 }
 
 function createFoldIcon(isOpen) {
@@ -1473,28 +1416,10 @@ function createMemberRowMoreButton(memberHomeState, member) {
 function createMemberIdentity(member) {
   const identity = createElement("span", { className: "member-identity member-cell" });
 
-  const title = createElement("strong", { textContent: `${formatText(member.petName)} (${formatText(member.breed)})` });
+  const title = createElement("strong", { textContent: formatText(member.petName) });
   identity.append(title);
-  const tagsCell = createMemberTagsCell(member);
-  if (tagsCell) {
-    identity.append(tagsCell);
-  }
 
   return identity;
-}
-
-function createMemberTagsCell(member) {
-  const memberTags = sanitizeTagList(member.petTags || []);
-
-  if (memberTags.length === 0) {
-    return null;
-  }
-
-  const tagsCell = createElement("span", {
-    className: "member-cell member-tags-cell",
-    dataset: { area: "memberTags" },
-  });
-  return renderMemberTagChips(tagsCell, memberTags, { maxVisible: 3 });
 }
 
 function createReservationAvailabilityCell(member) {
