@@ -5,6 +5,7 @@ export function createMemberDetailState() {
   const queryParams = new URLSearchParams(window.location.search);
   const memberId = queryParams.get("memberId") || "";
   const petId = queryParams.get("petId") || "";
+  const toast = queryParams.get("toast") || "";
   const members = getStoredMembers();
   const selectedMember = members.find((member) => member.id === memberId) || createEmptyMember();
   const selectedPet = findMemberPet(selectedMember, petId);
@@ -23,7 +24,7 @@ export function createMemberDetailState() {
     isOwnerDetailModalOpen: false,
     ownerDetailDraft: createOwnerDetailDraft(selectedMember),
     petDetailDraft: createPetDetailDraft(selectedPet),
-    toastMessage: "",
+    toastMessage: toast === "registered" ? "이미 등록된 회원입니다. 반려견 정보를 확인해 주세요." : "",
     isMemberRegistrationPageOpen: false,
     isGuardianLookupModalOpen: false,
     guardianLookup: {

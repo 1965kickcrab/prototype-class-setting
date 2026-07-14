@@ -3,13 +3,11 @@ import { bindImeAwareInput } from "../../utils/ime-input.js";
 import {
   createSchoolClass,
   deleteSchoolClass,
-  ensureDefaultSchoolClass,
-  getDefaultSchoolClass,
   loadSchoolClassList,
   updateSchoolClass,
 } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
-import { reassignStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
+import { detachStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 
 const WEEKDAYS = [
   { key: "mon", label: "월" },
@@ -447,15 +445,19 @@ function deleteClassForm() {
   if (
     classFormState.mode !== "edit"
     || !classFormState.classId
-    || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 유치원 기본 클래스로 이동합니다.")
+    || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 클래스 미지정으로 전환되며, 당시 클래스와 정원 정보는 보존됩니다.")
   ) {
     return;
   }
 
-  deleteSchoolClass(classFormState.classId);
-  ensureDefaultSchoolClass();
-  reassignStoredSchoolReservationsClass(classFormState.classId, getDefaultSchoolClass());
-  setSchoolClassMemberPets(classFormState.classId, []);
+  const deletedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === classFormState.classId);
+  if (!deletedClass) {
+    return;
+  }
+
+  deleteSchoolClass(deletedClass.id);
+  detachStoredSchoolReservationsClass(deletedClass);
+  setSchoolClassMemberPets(deletedClass.id, []);
   window.location.href = "./class.html";
 }
 

@@ -131,7 +131,7 @@
   --calendar-date-min-height: 72px;
   --calendar-date-align: flex-start;
   --calendar-date-justify: flex-start;
-  --calendar-date-padding: 4px 14px 12px;
+  --calendar-date-padding: 8px 14px 8px;
   --calendar-date-text-align: left;
 }
 
@@ -165,8 +165,8 @@
   font-weight: 700;
 }
 
-.school-home-screen .calendar-weekday.is-holiday {
-  color: #ed6060;
+.school-home-screen .calendar-weekday.is-weekend {
+  color: #333333;
 }
 
 .school-home-screen .calendar-date {
@@ -188,9 +188,10 @@
 
 .school-home-screen .calendar-date-box {
   width: 32px;
-  height: 32px;
+  min-height: 32px;
   display: inline-flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   padding-top: 4px;
 }
@@ -203,7 +204,6 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-top: auto;
   font-size: 12px;
   line-height: 14px;
   color: #666666;
@@ -241,12 +241,11 @@
   border-color: #dbe9ff;
 }
 
-.school-home-screen .calendar-date.is-holiday {
-  color: #ed6060;
-}
-
-.school-home-screen .calendar-date.is-holiday .calendar-meta {
-  color: #ed6060;
+.school-home-screen .calendar-date-holiday.is-holiday {
+  color: var(--color-warning);
+  font-size: 11px;
+  line-height: 13px;
+  margin-top: 12px;
 }
 
 .school-home-screen .calendar-date.is-selected {
@@ -260,15 +259,11 @@
   color: #666666;
 }
 
-.school-home-screen .calendar-grid[data-platform="web"] .calendar-date.is-selected.is-holiday,
-.school-home-screen .calendar-grid[data-platform="web"] .calendar-date.is-selected.is-holiday .calendar-meta {
-  color: #ed6060;
-}
-
 .school-home-screen .calendar-date-box[data-platform="app"] {
   width: 28px;
-  height: 28px;
+  min-height: 28px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 14px;

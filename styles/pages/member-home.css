@@ -88,8 +88,7 @@
   display: none;
 }
 
-.member-tag-list,
-.member-tags-cell {
+.member-tag-list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -291,10 +290,6 @@
 
   .member-identity strong {
     font-size: 16px;
-  }
-
-  .member-identity .member-tags-cell {
-    display: none;
   }
 
   .reservation-cell {

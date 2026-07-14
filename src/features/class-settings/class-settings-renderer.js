@@ -3,13 +3,11 @@ import { bindImeAwareInput } from "../../utils/ime-input.js";
 import {
   createSchoolClass,
   deleteSchoolClass,
-  ensureDefaultSchoolClass,
-  getDefaultSchoolClass,
   loadSchoolClassList,
   updateSchoolClass,
 } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
-import { reassignStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
+import { detachStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 
 const BACK_ICON_PATH = "../assets/icons/iconBack.svg";
 const SCHOOL_ICON_PATH = "../assets/icons/menuIcon_daycare.svg";
@@ -232,6 +230,13 @@ function createClassList(rootElement, schoolClassList) {
     table.append(createClassListRow(rootElement, schoolClass));
   });
 
+  if (schoolClassList.length === 0) {
+    table.append(createElement("p", {
+      className: "class-list-empty",
+      textContent: "등록된 클래스가 없습니다.",
+    }));
+  }
+
   section.append(table);
   return section;
 }
@@ -316,10 +321,10 @@ function createClassModal(rootElement) {
       dataset: { action: "deleteClassModal" },
     });
     deleteButton.addEventListener("click", () => {
-      if (confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 유치원 기본 클래스로 이동합니다.")) {
-        deleteSchoolClass(classSettingsState.editingClassId);
-        ensureDefaultSchoolClass();
-        reassignStoredSchoolReservationsClass(classSettingsState.editingClassId, getDefaultSchoolClass());
+      const deletedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === classSettingsState.editingClassId);
+      if (deletedClass && confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 클래스 미지정으로 전환되며, 당시 클래스와 정원 정보는 보존됩니다.")) {
+        deleteSchoolClass(deletedClass.id);
+        detachStoredSchoolReservationsClass(deletedClass);
         setSchoolClassMemberPets(classSettingsState.editingClassId, []);
         closeClassModal(rootElement);
       }
@@ -519,13 +524,16 @@ function createClassMemberField(rootElement) {
   const selectedMemberPetKeys = new Set(classSettingsState.draft.memberPetKeys || []);
   const label = createElement("span", { className: "class-form-label class-member-label" });
   label.append(createElement("span", { textContent: "소속 회원" }));
-  label.append(createElement("strong", {
+  const memberPets = getMemberPetRows(getStoredMembers());
+  const actions = createElement("span", { className: "class-member-actions" });
+  actions.append(createElement("strong", {
     className: "class-member-count",
     textContent: `${selectedMemberPetKeys.size}마리 선택`,
   }));
+  actions.append(createClassMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys));
+  label.append(actions);
   field.append(label);
 
-  const memberPets = getMemberPetRows(getStoredMembers());
   if (memberPets.length === 0) {
     field.append(createElement("p", {
       className: "class-member-empty",
@@ -646,6 +654,32 @@ function getVisibleClassMemberPets(memberPets) {
       memberPet.phoneNumber,
     ].some((value) => normalizeClassMemberSearchText(value).includes(query));
   });
+}
+
+function createClassMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys) {
+  const isAllSelected = areAllClassMemberPetsSelected(memberPets, selectedMemberPetKeys);
+  const button = createElement("button", {
+    className: "class-member-select-all-button",
+    type: "button",
+    textContent: isAllSelected ? "전체 해제" : "전체 선택",
+    dataset: { action: "toggleAllClassMembers", state: isAllSelected ? "selected" : "idle" },
+  });
+  button.disabled = memberPets.length === 0;
+  button.addEventListener("click", () => {
+    classSettingsState.draft.memberPetKeys = isAllSelected ? [] : getMemberPetKeys(memberPets);
+    rerender(rootElement);
+  });
+  return button;
+}
+
+function areAllClassMemberPetsSelected(memberPets, selectedMemberPetKeys) {
+  return memberPets.length > 0 && getMemberPetKeys(memberPets).every((memberPetKey) => {
+    return selectedMemberPetKeys.has(memberPetKey);
+  });
+}
+
+function getMemberPetKeys(memberPets) {
+  return memberPets.map((memberPet) => getMemberPetKey(memberPet.memberId, memberPet.petId));
 }
 
 function normalizeClassMemberSearchText(value) {

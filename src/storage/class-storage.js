@@ -1,41 +1,26 @@
 import { readJsonStorage, writeJsonStorage } from "./storage-utils.js";
 
 export const SCHOOL_CLASS_LIST_STORAGE_KEY = "schoolClassList";
-export const DEFAULT_SCHOOL_CLASS_ID = "school-default";
-export const DEFAULT_SCHOOL_CLASS_NAME = "유치원 기본";
-
-const DEFAULT_SCHOOL_CLASS = {
-  id: DEFAULT_SCHOOL_CLASS_ID,
-  name: DEFAULT_SCHOOL_CLASS_NAME,
-  manager: "",
-  capacity: null,
-  businessDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-};
-const LEGACY_DEFAULT_CLASS_NAMES = ["기타", "유치원"];
-
 export function loadSchoolClassList() {
   const storedClassList = readJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, null);
 
-  if (!Array.isArray(storedClassList) || storedClassList.length === 0) {
-    const defaultClassList = [{ ...DEFAULT_SCHOOL_CLASS }];
-    writeJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, defaultClassList);
-    return defaultClassList;
+  if (!Array.isArray(storedClassList)) {
+    writeJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, []);
+    return [];
   }
 
-  const normalizedClassList = storedClassList.map(normalizeSchoolClass).filter((schoolClass) => schoolClass.name);
-  if (normalizedClassList.length === 0) {
-    const defaultClassList = [{ ...DEFAULT_SCHOOL_CLASS }];
-    writeJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, defaultClassList);
-    return defaultClassList;
-  }
-
+  const normalizedClassList = sortSchoolClassList(
+    storedClassList.map(normalizeSchoolClass).filter((schoolClass) => schoolClass.name),
+  );
   writeJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, normalizedClassList);
   return normalizedClassList;
 }
 
 export function saveSchoolClassList(classList) {
   const normalizedClassList = Array.isArray(classList)
-    ? classList.map(normalizeSchoolClass).filter((schoolClass) => schoolClass.name)
+    ? sortSchoolClassList(
+      classList.map(normalizeSchoolClass).filter((schoolClass) => schoolClass.name),
+    )
     : [];
   writeJsonStorage(SCHOOL_CLASS_LIST_STORAGE_KEY, normalizedClassList);
   return normalizedClassList;
@@ -77,17 +62,17 @@ export function deleteSchoolClass(classId) {
   return nextClassList;
 }
 
-export function getDefaultSchoolClass() {
-  return { ...DEFAULT_SCHOOL_CLASS };
-}
-
-export function ensureDefaultSchoolClass() {
-  const currentClassList = loadSchoolClassList();
-  if (currentClassList.length > 0) {
-    return currentClassList;
+export function createSchoolClassSnapshot(schoolClass) {
+  const id = String(schoolClass?.id || "").trim();
+  if (!id) {
+    return null;
   }
 
-  return saveSchoolClassList([{ ...DEFAULT_SCHOOL_CLASS }]);
+  return {
+    id,
+    name: normalizeText(schoolClass?.name),
+    capacity: normalizeCapacity(schoolClass?.capacity),
+  };
 }
 
 export function getSchoolClassCapacityTotal() {
@@ -102,9 +87,7 @@ function normalizeSchoolClass(schoolClass) {
   const name = normalizeText(schoolClass?.name);
   return {
     id,
-    name: id === DEFAULT_SCHOOL_CLASS.id && (!name || LEGACY_DEFAULT_CLASS_NAMES.includes(name))
-      ? DEFAULT_SCHOOL_CLASS.name
-      : name,
+    name,
     manager: normalizeText(schoolClass?.manager),
     capacity: normalizeCapacity(schoolClass?.capacity),
     businessDays: normalizeBusinessDays(schoolClass?.businessDays),
@@ -131,6 +114,23 @@ function normalizeBusinessDays(businessDays) {
 
   const weekdayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
   return weekdayKeys.filter((weekdayKey) => businessDays.includes(weekdayKey));
+}
+
+function sortSchoolClassList(classList) {
+  return [...classList].sort(compareSchoolClassesByName);
+}
+
+function compareSchoolClassesByName(leftClass, rightClass) {
+  const nameOrder = String(leftClass.name || "").localeCompare(String(rightClass.name || ""), "ko", {
+    numeric: true,
+    sensitivity: "base",
+  });
+
+  if (nameOrder !== 0) {
+    return nameOrder;
+  }
+
+  return String(leftClass.id || "").localeCompare(String(rightClass.id || ""));
 }
 
 function createSchoolClassId() {

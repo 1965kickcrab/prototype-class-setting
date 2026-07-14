@@ -1,12 +1,10 @@
 import {
   deleteSchoolClass,
-  ensureDefaultSchoolClass,
-  getDefaultSchoolClass,
   loadSchoolClassList,
   updateSchoolClass,
 } from "../../storage/class-storage.js";
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
-import { reassignStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
+import { detachStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 import { createElement } from "../../utils/dom.js";
 
 const BACK_ICON_PATH = "assets/icons/iconBack.svg";
@@ -281,13 +279,16 @@ function createClassMemberField(rootElement) {
   const selectedMemberPetKeys = new Set(detailState.draft.memberPetKeys || []);
   const label = createElement("div", { className: "app-class-member-label" });
   label.append(createElement("span", { className: "app-class-form-label", textContent: "소속 회원" }));
-  label.append(createElement("strong", {
+  const memberPets = getMemberPetRows(getStoredMembers());
+  const actions = createElement("div", { className: "app-class-member-actions" });
+  actions.append(createElement("strong", {
     className: "app-class-member-count",
     textContent: `${selectedMemberPetKeys.size}마리 선택`,
   }));
+  actions.append(createMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys));
+  label.append(actions);
   field.append(label);
 
-  const memberPets = getMemberPetRows(getStoredMembers());
   if (memberPets.length === 0) {
     field.append(createElement("p", {
       className: "app-class-member-empty",
@@ -359,6 +360,32 @@ function createClassMemberList(rootElement, memberPets) {
   return list;
 }
 
+function createMemberSelectAllButton(rootElement, memberPets, selectedMemberPetKeys) {
+  const isAllSelected = areAllMemberPetsSelected(memberPets, selectedMemberPetKeys);
+  const button = createElement("button", {
+    className: "app-class-member-select-all-button",
+    type: "button",
+    textContent: isAllSelected ? "전체 해제" : "전체 선택",
+    dataset: { action: "toggleAllClassMembers", state: isAllSelected ? "selected" : "idle" },
+  });
+  button.disabled = memberPets.length === 0;
+  button.addEventListener("click", () => {
+    detailState.draft.memberPetKeys = isAllSelected ? [] : getMemberPetKeys(memberPets);
+    rerender(rootElement);
+  });
+  return button;
+}
+
+function areAllMemberPetsSelected(memberPets, selectedMemberPetKeys) {
+  return memberPets.length > 0 && getMemberPetKeys(memberPets).every((memberPetKey) => {
+    return selectedMemberPetKeys.has(memberPetKey);
+  });
+}
+
+function getMemberPetKeys(memberPets) {
+  return memberPets.map((memberPet) => getMemberPetKey(memberPet.memberId, memberPet.petId));
+}
+
 function createErrorMessage(fieldName) {
   return createElement("p", {
     className: "app-class-form-error",
@@ -416,14 +443,14 @@ function updateSubmitButtonState(submitButton) {
 }
 
 function deleteClass() {
-  if (!detailState.classId || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 유치원 기본 클래스로 이동합니다.")) {
+  const deletedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === detailState.classId);
+  if (!deletedClass || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 클래스 미지정으로 전환되며, 당시 클래스와 정원 정보는 보존됩니다.")) {
     return;
   }
 
-  deleteSchoolClass(detailState.classId);
-  ensureDefaultSchoolClass();
-  reassignStoredSchoolReservationsClass(detailState.classId, getDefaultSchoolClass());
-  setSchoolClassMemberPets(detailState.classId, []);
+  deleteSchoolClass(deletedClass.id);
+  detachStoredSchoolReservationsClass(deletedClass);
+  setSchoolClassMemberPets(deletedClass.id, []);
   window.location.href = "./app-class-settings.html";
 }
 

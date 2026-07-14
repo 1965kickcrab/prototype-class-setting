@@ -48,6 +48,13 @@
   border-bottom: 0;
 }
 
+.class-list-empty {
+  margin: 0;
+  padding: 28px 20px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .class-list-row:not(.is-header):hover {
   background: var(--color-primary-soft);
 }
@@ -196,6 +203,28 @@
   color: var(--color-primary);
   font-size: 13px;
   font-weight: 800;
+}
+
+.class-member-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.class-member-select-all-button {
+  min-height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+.class-member-select-all-button[data-state="selected"] {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .class-member-search-input {
