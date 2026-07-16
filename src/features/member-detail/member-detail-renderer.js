@@ -1295,17 +1295,7 @@ function formatDateLabel(value) {
 
 function getReservationAvailability(member) {
   const reservableCount = getTotalCount(member.totalReservableCountByType);
-  const reservedCount = getTotalCount(member.totalReservedCountByType);
-  const remainingCount = getTotalCount(member.remainingCountByType);
-  const excessCount = Math.max(reservedCount - reservableCount, 0);
-  const availableCount = Math.max(remainingCount || reservableCount - reservedCount, 0);
-
-  if (excessCount > 0) {
-    return {
-      state: "warning",
-      text: `초과 ${excessCount}회`,
-    };
-  }
+  const availableCount = Math.max(reservableCount, 0);
 
   return {
     state: availableCount <= 2 ? "warning" : "normal",

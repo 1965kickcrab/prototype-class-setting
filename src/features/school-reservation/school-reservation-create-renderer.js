@@ -1,6 +1,7 @@
 import { createSchoolClassSnapshot, loadSchoolClassList } from "../../storage/class-storage.js";
-import { addMemberPetToSchoolClass } from "../../storage/member-storage.js";
+import { addMemberPetToSchoolClass, getStoredMembers, saveStoredMembers } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeReservations } from "../../storage/school-home-storage.js";
+import { applySchoolReservationRegistration, isActiveSchoolReservation } from "../../services/school-reservation-count-service.js";
 import { getCalendarMatrix, getMonthLabel, shiftMonth } from "../school-home/school-home-state.js";
 import { createElement } from "../../utils/dom.js";
 import { clearSchoolReservationDraft, loadSchoolReservationDraft, saveSchoolReservationDraft } from "./school-reservation-draft.js";
@@ -274,6 +275,13 @@ function submitReservation(rootElement, draft) {
   const reservations = draft.selectedDates.map((dateKey) => {
     return createReservationFromDraft(dateKey, selectedClass, draft.memberPet);
   });
+  const nextMembers = applySchoolReservationRegistration(
+    getStoredMembers(),
+    draft.memberPet.memberId || draft.memberPet.id,
+    draft.memberPet.petId,
+    reservations.length,
+  );
+  saveStoredMembers(nextMembers);
   if (selectedClass) {
     addMemberPetToSchoolClass(draft.memberPet.memberId || draft.memberPet.id, draft.memberPet.petId, selectedClass.id);
   }
@@ -308,6 +316,8 @@ function createReservationFromDraft(dateKey, schoolClass, memberPet) {
     memo: memberPet.memo || "",
     totalReservableCount: getReservableCount(memberPet),
     status: "예약",
+    isCountReserved: true,
+    isRemainingConsumed: false,
   };
 }
 
@@ -334,7 +344,8 @@ function isExistingReservationDate(draft, dateKey) {
     return reservation.date === dateKey
       && reservation.memberId === memberId
       && reservation.petId === petId
-      && String(reservation.classId || "") === String(draft.selectedClassId || "");
+      && String(reservation.classId || "") === String(draft.selectedClassId || "")
+      && isActiveSchoolReservation(reservation);
   });
 }
 
@@ -373,7 +384,7 @@ function getClassCapacityById(classId) {
 }
 
 function getReservableCount(memberPet) {
-  return Number(memberPet?.remainingCountByType?.school ?? memberPet?.totalReservableCountByType?.school ?? 0);
+  return Number(memberPet?.totalReservableCountByType?.school ?? memberPet?.remainingCountByType?.school ?? 0);
 }
 
 function getSelectedMemberInputText(memberPet) {

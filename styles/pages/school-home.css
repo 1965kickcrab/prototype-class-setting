@@ -1063,11 +1063,11 @@
 }
 
 .school-registration-count {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-weight: 800;
 }
 
-.school-registration-count.is-active {
+.school-registration-count.is-over {
   color: var(--color-warning);
 }
 
