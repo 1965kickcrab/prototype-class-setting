@@ -1,11 +1,25 @@
 import {
   getSchoolHomeInitialView,
   getSchoolHomeReservations,
+  saveStoredSchoolReservations,
 } from "../../storage/school-home-storage.js";
-import { getStoredMembers, loadMemberTagCatalog } from "../../storage/member-storage.js";
+import { getStoredMembers, loadMemberTagCatalog, saveStoredMembers } from "../../storage/member-storage.js";
+import { isActiveSchoolReservation, settlePastSchoolReservations } from "../../services/school-reservation-count-service.js";
 
 export function createSchoolHomeState() {
   const initialView = getSchoolHomeInitialView();
+  const members = getStoredMembers();
+  const reservations = getSchoolHomeReservations();
+  const settledReservationUsage = settlePastSchoolReservations({
+    members,
+    reservations,
+    todayDateKey: initialView.selectedDate,
+  });
+
+  if (settledReservationUsage.hasChanges) {
+    saveStoredMembers(settledReservationUsage.members);
+    saveStoredSchoolReservations(settledReservationUsage.reservations);
+  }
 
   return {
     currentMonth: initialView.currentMonth,
@@ -17,8 +31,8 @@ export function createSchoolHomeState() {
     searchTerm: "",
     isReservationSearchMenuOpen: false,
     isReservationSearchScreenOpen: false,
-    members: getStoredMembers(),
-    reservations: attachMemberTagsToReservations(getSchoolHomeReservations(), getStoredMembers()),
+    members: settledReservationUsage.members,
+    reservations: attachMemberTagsToReservations(settledReservationUsage.reservations, settledReservationUsage.members),
     selectedSchoolClassId: "",
     memberTagCatalog: loadMemberTagCatalog(),
     selectedMemberTagNames: [],
@@ -74,7 +88,8 @@ export function isUiHoliday(dateText) {
 
 export function getSelectedDateSummary(schoolHomeState) {
   const reservations = getFilteredReservationsByDate(schoolHomeState, schoolHomeState.selectedDate);
-  const reservationCount = reservations.length;
+  const activeReservations = reservations.filter(isActiveSchoolReservation);
+  const reservationCount = activeReservations.length;
   return {
     dateText: formatSelectedDate(schoolHomeState.selectedDate),
     reservationCount,
@@ -82,6 +97,7 @@ export function getSelectedDateSummary(schoolHomeState) {
     isCapacityClosed: false,
     hasReservations: reservationCount > 0,
     reservations,
+    activeReservations,
   };
 }
 

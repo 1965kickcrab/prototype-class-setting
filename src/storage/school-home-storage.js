@@ -111,6 +111,8 @@ function normalizeStoredSchoolReservation(reservation) {
   return createSchoolReservation({
     id: String(reservation?.id || createSchoolReservationId()).trim(),
     date: String(reservation?.date || "").trim(),
+    isCountReserved: Boolean(reservation?.isCountReserved),
+    isRemainingConsumed: Boolean(reservation?.isRemainingConsumed),
     classId: reservation?.classId ? String(reservation.classId).trim() : null,
     className: String(reservation?.className || "").trim(),
     classSnapshot: normalizeClassSnapshot(reservation?.classSnapshot, reservation),

@@ -3,13 +3,15 @@ import { createBusinessNavigation, createDefaultAppBottomNavigation } from "../.
 import { createReservationSearchFilter } from "../../components/reservation-search-filter.js";
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { createSchoolClassSnapshot, getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
-import { addMemberPetToSchoolClass, getMemberPetRows } from "../../storage/member-storage.js";
+import { addMemberPetToSchoolClass, getMemberPetRows, saveStoredMembers } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
+import { applySchoolReservationCancellation, applySchoolReservationRegistration, isActiveSchoolReservation, settlePastSchoolReservations } from "../../services/school-reservation-count-service.js";
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
 import {
   createReservationRegistrationState,
   getCalendarMatrix,
+  getTodayDateKey,
   getMonthLabel,
   getFilteredReservationsByDate,
   getSelectedDateSummary,
@@ -49,8 +51,26 @@ const HEADER_ICON_ACTIONS = {
 };
 
 export function renderSchoolHome(rootElement, schoolHomeState) {
+  settlePastReservationUsage(schoolHomeState);
   rootElement.innerHTML = "";
   rootElement.append(createSchoolHomeScreen(schoolHomeState));
+}
+
+function settlePastReservationUsage(schoolHomeState) {
+  const settledReservationUsage = settlePastSchoolReservations({
+    members: schoolHomeState.members,
+    reservations: schoolHomeState.reservations,
+    todayDateKey: getTodayDateKey(),
+  });
+
+  if (!settledReservationUsage.hasChanges) {
+    return;
+  }
+
+  schoolHomeState.members = settledReservationUsage.members;
+  schoolHomeState.reservations = settledReservationUsage.reservations;
+  saveStoredMembers(schoolHomeState.members);
+  saveStoredSchoolReservations(schoolHomeState.reservations);
 }
 
 function rerender(schoolHomeState) {
@@ -381,7 +401,8 @@ function createCalendarGrid(schoolHomeState, platform) {
 
 function createCalendarDateButton(schoolHomeState, cell, platform) {
   const reservations = getFilteredReservationsByDate(schoolHomeState, cell.dateKey);
-  const reservationCount = reservations.length;
+  const activeReservations = reservations.filter(isActiveSchoolReservation);
+  const reservationCount = activeReservations.length;
   const isSelected = cell.dateKey === schoolHomeState.selectedDate;
   const hasReservations = reservationCount > 0;
   const classNames = [
@@ -402,7 +423,7 @@ function createCalendarDateButton(schoolHomeState, cell, platform) {
   });
 
   if (platform === "web") {
-    button.append(...createWebCalendarDateContent(schoolHomeState, cell.dayNumber, reservations, cell.isHoliday));
+    button.append(...createWebCalendarDateContent(schoolHomeState, cell.dayNumber, activeReservations, cell.isHoliday));
   } else {
     button.append(...createAppCalendarDateContent(cell.dayNumber, reservationCount, getSchoolCapacityCount(), cell.isHoliday));
   }
@@ -676,6 +697,11 @@ function cancelSelectedWebReservations(schoolHomeState) {
     return;
   }
 
+  const reservationsToCancel = (schoolHomeState.reservations || []).filter((reservation) => {
+    return cancelableReservationIds.has(reservation.id);
+  });
+  schoolHomeState.members = applySchoolReservationCancellation(schoolHomeState.members, reservationsToCancel);
+  saveStoredMembers(schoolHomeState.members);
   schoolHomeState.reservations = (schoolHomeState.reservations || []).map((reservation) => {
     if (!cancelableReservationIds.has(reservation.id)) {
       return reservation;
@@ -915,11 +941,12 @@ function getActiveAppClassTabId(schoolHomeState, summary) {
 }
 
 function getAppReservationsForActiveClass(summary, activeClassId) {
+  const activeReservations = summary.activeReservations || [];
   if (!activeClassId) {
-    return summary.reservations;
+    return activeReservations;
   }
 
-  return summary.reservations.filter((reservation) => getReservationClassGroupId(reservation) === activeClassId);
+  return activeReservations.filter((reservation) => getReservationClassGroupId(reservation) === activeClassId);
 }
 
 function getAppClassTabs(summary) {
@@ -927,7 +954,7 @@ function getAppClassTabs(summary) {
   const classNameById = new Map(classList.map((schoolClass) => [schoolClass.id, schoolClass.name || "-"]));
   const countsByClassId = new Map();
 
-  summary.reservations.forEach((reservation) => {
+  (summary.activeReservations || []).forEach((reservation) => {
     const classId = getReservationClassGroupId(reservation);
     countsByClassId.set(classId, (countsByClassId.get(classId) || 0) + 1);
   });
@@ -1321,14 +1348,14 @@ function createRegistrationDateButton(schoolHomeState, cell) {
 function createRegistrationCountSection(schoolHomeState) {
   const state = schoolHomeState.reservationRegistration;
   const selectedCount = state.selectedDates.length;
-  const remainingCount = getReservationTicketRemainingCount();
-  const overCount = Math.max(0, selectedCount - remainingCount);
+  const reservableCount = getReservationTicketReservableCount(schoolHomeState);
+  const overCount = Math.max(0, selectedCount - reservableCount);
   const hasCapacityExceeded = hasReservationRegistrationCapacityExceeded(schoolHomeState);
   const section = createElement("section", { className: "school-registration-count-section" });
   section.append(createElement("strong", { textContent: "예약 횟수" }));
   section.append(createElement("span", {
-    className: selectedCount ? "school-registration-count is-active" : "school-registration-count",
-    textContent: `총 ${selectedCount} / ${remainingCount} 회`,
+    className: overCount > 0 ? "school-registration-count is-over" : "school-registration-count",
+    textContent: `총 ${selectedCount} / ${reservableCount} 회`,
   }));
   if (overCount > 0) {
     section.append(createElement("span", {
@@ -1456,6 +1483,13 @@ function submitReservationRegistration(schoolHomeState) {
   const newReservations = state.selectedDates.map((dateKey) => {
     return createReservationFromSelection(dateKey, selectedClass, selectedMemberPet);
   });
+  schoolHomeState.members = applySchoolReservationRegistration(
+    schoolHomeState.members,
+    selectedMemberPet.memberId || selectedMemberPet.id,
+    selectedMemberPet.petId,
+    newReservations.length,
+  );
+  saveStoredMembers(schoolHomeState.members);
   if (selectedClass) {
     schoolHomeState.members = addMemberPetToSchoolClass(
       selectedMemberPet.memberId || selectedMemberPet.id,
@@ -1494,6 +1528,8 @@ function createReservationFromSelection(dateKey, schoolClass, memberPet) {
     neuteredStatus: memberPet.neuteredStatus || "",
     memo: memberPet.memo || "",
     status: "예약",
+    isCountReserved: true,
+    isRemainingConsumed: false,
   };
 }
 
@@ -1543,7 +1579,8 @@ function isExistingReservationDate(schoolHomeState, dateKey, classId = schoolHom
     return reservation.date === dateKey
       && reservation.memberId === memberId
       && reservation.petId === petId
-      && String(reservation.classId || "") === selectedClassId;
+      && String(reservation.classId || "") === selectedClassId
+      && isActiveSchoolReservation(reservation);
   });
 }
 
@@ -1596,8 +1633,15 @@ function formatRegistrationClassOptionLabel(schoolClass) {
   return meta ? `${className} (${meta})` : className;
 }
 
-function getReservationTicketRemainingCount() {
-  return 0;
+function getReservationTicketReservableCount(schoolHomeState) {
+  const memberPet = schoolHomeState?.reservationRegistration?.selectedMemberPet;
+  const reservableCount = Number(
+    memberPet?.totalReservableCountByType?.school
+    ?? memberPet?.remainingCountByType?.school
+    ?? 0,
+  );
+
+  return Number.isFinite(reservableCount) ? Math.max(reservableCount, 0) : 0;
 }
 
 function getMemberPetMetaText(memberPet) {
@@ -1694,7 +1738,7 @@ function createReservationSearchResultItem(reservation, featureName) {
   item.append(row);
   item.append(createElement("span", {
     className: "app-reservation-search-date",
-    textContent: `${formatReservationSearchDate(reservation.date)} 예약`,
+    textContent: `${formatReservationSearchDate(reservation.date)} ${isActiveSchoolReservation(reservation) ? "예약" : "취소"}`,
   }));
   return item;
 }

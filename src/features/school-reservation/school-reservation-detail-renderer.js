@@ -1,5 +1,7 @@
 import { getSchoolHomeReservations, loadStoredSchoolReservations, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
 import { createSchoolClassSnapshot, loadSchoolClassList } from "../../storage/class-storage.js";
+import { getStoredMembers, saveStoredMembers } from "../../storage/member-storage.js";
+import { applySchoolReservationCancellation, isActiveSchoolReservation } from "../../services/school-reservation-count-service.js";
 import { createElement } from "../../utils/dom.js";
 
 const DEFAULT_DOG_PROFILE_IMAGE = "assets/images/defaultProfile_dog.svg";
@@ -57,9 +59,10 @@ function createHeader(reservation) {
   const cancelButton = createElement("button", {
     className: "school-reservation-detail-cancel-button",
     type: "button",
-    textContent: "예약 취소",
+    textContent: isActiveSchoolReservation(reservation) ? "예약 취소" : "취소됨",
     dataset: { action: "cancelReservation", entityId: reservation.id },
   });
+  cancelButton.disabled = !isActiveSchoolReservation(reservation);
   cancelButton.addEventListener("click", () => {
     isReservationCancelAlertOpen = true;
     renderSchoolReservationDetail(document.querySelector("#app"));
@@ -166,8 +169,13 @@ function getReservationDetail() {
 
 function cancelReservation(reservationId) {
   const storedReservations = loadStoredSchoolReservations();
-  const nextReservations = storedReservations.filter((reservation) => reservation.id !== reservationId);
-  if (nextReservations.length !== storedReservations.length) {
+  const reservationToCancel = storedReservations.find((reservation) => reservation.id === reservationId);
+  if (reservationToCancel && isActiveSchoolReservation(reservationToCancel)) {
+    const nextMembers = applySchoolReservationCancellation(getStoredMembers(), [reservationToCancel]);
+    const nextReservations = storedReservations.map((reservation) => {
+      return reservation.id === reservationId ? { ...reservation, status: "취소" } : reservation;
+    });
+    saveStoredMembers(nextMembers);
     saveStoredSchoolReservations(nextReservations);
   }
   window.location.href = "./index.html";
