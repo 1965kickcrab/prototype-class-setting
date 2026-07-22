@@ -3,14 +3,32 @@ import { addMemberPetToSchoolClass, getStoredMembers, saveStoredMembers } from "
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeReservations } from "../../storage/school-home-storage.js";
 import { applySchoolReservationRegistration, isActiveSchoolReservation } from "../../services/school-reservation-count-service.js";
 import { getCalendarMatrix, getMonthLabel, shiftMonth } from "../school-home/school-home-state.js";
+import { createToast, TOAST_AUTO_DISMISS_MS } from "../../components/toast.js";
 import { createElement } from "../../utils/dom.js";
 import { clearSchoolReservationDraft, loadSchoolReservationDraft, saveSchoolReservationDraft } from "./school-reservation-draft.js";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+let isClassBottomSheetOpen = false;
+let isReservationSuccessToastVisible = false;
+let reservationToastDismissTimer = null;
 
 export function renderSchoolReservationCreate(rootElement) {
   rootElement.innerHTML = "";
-  rootElement.append(createReservationCreateScreen(rootElement, loadSchoolReservationDraft()));
+  const draft = loadSchoolReservationDraft();
+  const screen = createReservationCreateScreen(rootElement, draft);
+  if (isClassBottomSheetOpen) {
+    screen.append(createClassBottomSheet(rootElement, draft));
+  }
+  if (isReservationSuccessToastVisible) {
+    screen.append(createReservationSuccessToast());
+  }
+  rootElement.append(screen);
+}
+
+function createReservationSuccessToast() {
+  const toast = createToast("예약이 등록되었습니다.");
+  toast.classList.add("school-reservation-success-toast");
+  return toast;
 }
 
 function createReservationCreateScreen(rootElement, draft) {
@@ -84,37 +102,94 @@ function createMemberSection(draft) {
 }
 
 function createClassSection(rootElement, draft) {
+  const isMemberSelected = Boolean(draft.memberPet);
   const section = createElement("section", { className: "school-reservation-form-section" });
   section.append(createElement("h2", { textContent: "클래스" }));
 
-  const classList = loadSchoolClassList();
-  const list = createElement("div", { className: "school-reservation-class-list" });
+  const input = createElement("input", {
+    className: "school-reservation-class-list",
+    type: "text",
+    value: getSelectedClassName(draft.selectedClassId),
+    ariaLabel: "클래스 선택",
+    dataset: { action: "openClassBottomSheet", field: "schoolClass" },
+  });
+  input.readOnly = true;
+  input.disabled = !isMemberSelected;
+  input.addEventListener("click", () => {
+    if (!isMemberSelected) {
+      return;
+    }
+
+    isClassBottomSheetOpen = true;
+    renderSchoolReservationCreate(rootElement);
+  });
+  section.append(input);
+  return section;
+}
+
+function createClassBottomSheet(rootElement, draft) {
+  const overlay = createElement("section", {
+    className: "school-reservation-class-sheet-overlay",
+    dataset: { area: "reservationClassSheet", modal: "reservationClassSheet", state: "open" },
+  });
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeClassBottomSheet(rootElement);
+    }
+  });
+
+  const sheet = createElement("section", { className: "school-reservation-class-sheet" });
+  const header = createElement("header", { className: "school-reservation-class-sheet-header" });
+  header.append(createElement("strong", { textContent: "클래스 선택" }));
+  const closeButton = createElement("button", {
+    className: "school-reservation-class-sheet-close",
+    type: "button",
+    textContent: "닫기",
+    dataset: { action: "closeClassBottomSheet" },
+  });
+  closeButton.addEventListener("click", () => closeClassBottomSheet(rootElement));
+  header.append(closeButton);
+
+  const list = createElement("div", { className: "school-reservation-class-sheet-list" });
   list.append(createClassOption(rootElement, draft, null));
-  classList.forEach((schoolClass) => {
+  loadSchoolClassList().forEach((schoolClass) => {
     list.append(createClassOption(rootElement, draft, schoolClass));
   });
-  section.append(list);
-  return section;
+
+  sheet.append(header, list);
+  overlay.append(sheet);
+  return overlay;
 }
 
 function createClassOption(rootElement, draft, schoolClass) {
   const classId = schoolClass?.id || "";
   const isSelected = draft.selectedClassId === classId;
   const button = createElement("button", {
-    className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
+    className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
     type: "button",
     textContent: schoolClass?.name || "미지정",
     dataset: { action: "selectClass", entityId: classId, state: isSelected ? "selected" : "idle" },
   });
   button.addEventListener("click", () => {
     draft.selectedClassId = classId;
-    draft.selectedDates = draft.selectedDates.filter((dateKey) => {
-      return !isExistingReservationDate(draft, dateKey) && canKeepReservationDate(draft, dateKey);
-    });
     saveSchoolReservationDraft(draft);
+    isClassBottomSheetOpen = false;
     renderSchoolReservationCreate(rootElement);
   });
   return button;
+}
+
+function closeClassBottomSheet(rootElement) {
+  isClassBottomSheetOpen = false;
+  renderSchoolReservationCreate(rootElement);
+}
+
+function getSelectedClassName(classId) {
+  if (!classId) {
+    return "미지정";
+  }
+
+  return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.name || "미지정";
 }
 
 function createDateSection(rootElement, draft) {
@@ -140,7 +215,12 @@ function createMonthButton(rootElement, draft, offset, label) {
     textContent: offset < 0 ? "<" : ">",
     ariaLabel: label,
   });
+  button.disabled = !draft.memberPet;
   button.addEventListener("click", () => {
+    if (!draft.memberPet) {
+      return;
+    }
+
     draft.currentMonth = shiftMonth(draft.currentMonth, offset);
     saveSchoolReservationDraft(draft);
     renderSchoolReservationCreate(rootElement);
@@ -170,6 +250,7 @@ function createCalendar(rootElement, draft) {
 }
 
 function createDateButton(rootElement, draft, cell) {
+  const isDateSelectable = Boolean(draft.memberPet);
   const isSelected = draft.selectedDates.includes(cell.dateKey);
   const isAlreadyReserved = isReservationDraftReadyForDateChecks(draft) && isExistingReservationDate(draft, cell.dateKey);
   const isCapacityFull = isReservationDraftReadyForDateChecks(draft) && isClassCapacityFullForDate(draft.selectedClassId, cell.dateKey);
@@ -181,6 +262,7 @@ function createDateButton(rootElement, draft, cell) {
     isSelected ? "is-selected" : "",
     isAlreadyReserved ? "is-reserved" : "",
     isCapacityBlocked ? "is-capacity-full" : "",
+    isDateSelectable ? "" : "is-disabled",
   ].filter(Boolean).join(" ");
   const button = createElement("button", {
     className: classNames,
@@ -188,18 +270,19 @@ function createDateButton(rootElement, draft, cell) {
     dataset: {
       action: "toggleDate",
       entityId: cell.dateKey,
-      state: isAlreadyReserved ? "reserved" : isCapacityBlocked ? "disabled" : isSelected ? "selected" : "idle",
+      state: !isDateSelectable || isAlreadyReserved || isCapacityBlocked ? "disabled" : isSelected ? "selected" : "idle",
     },
   });
+  button.disabled = !isDateSelectable;
   button.append(createElement("span", { textContent: String(cell.dayNumber) }));
   if (cell.isHoliday) {
     button.append(createElement("i", { textContent: "" }));
   }
-  if (isAlreadyReserved || isCapacityBlocked) {
-    button.append(createElement("small", { textContent: isAlreadyReserved ? "예약" : "마감" }));
+  if (isCapacityBlocked) {
+    button.append(createElement("small", { textContent: "마감" }));
   }
   button.addEventListener("click", () => {
-    if (!cell.isCurrentMonth || cell.isHoliday || isAlreadyReserved || isCapacityBlocked) {
+    if (!isDateSelectable || !cell.isCurrentMonth || cell.isHoliday || isAlreadyReserved || isCapacityBlocked) {
       return;
     }
 
@@ -287,7 +370,18 @@ function submitReservation(rootElement, draft) {
   }
   appendStoredSchoolReservations(reservations);
   clearSchoolReservationDraft();
-  window.location.href = "./index.html";
+  isClassBottomSheetOpen = false;
+  isReservationSuccessToastVisible = true;
+  renderSchoolReservationCreate(rootElement);
+  scheduleReservationToastDismiss(rootElement);
+}
+
+function scheduleReservationToastDismiss(rootElement) {
+  window.clearTimeout(reservationToastDismissTimer);
+  reservationToastDismissTimer = window.setTimeout(() => {
+    isReservationSuccessToastVisible = false;
+    renderSchoolReservationCreate(rootElement);
+  }, TOAST_AUTO_DISMISS_MS);
 }
 
 function createReservationFromDraft(dateKey, schoolClass, memberPet) {

@@ -124,9 +124,21 @@
 }
 
 .school-reservation-class-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #333333;
+  padding: 0 14px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.school-reservation-class-list:disabled {
+  background: #f5f5f5;
+  color: #c4c4c4;
+  cursor: not-allowed;
 }
 
 .school-reservation-class-option {
@@ -181,6 +193,12 @@
   color: #333333;
   font-size: 28px;
   line-height: 1;
+}
+
+.school-reservation-month-button:disabled,
+.school-reservation-date-button:disabled {
+  color: #c4c4c4;
+  cursor: not-allowed;
 }
 
 .school-reservation-calendar,
@@ -238,7 +256,8 @@
 }
 
 .school-reservation-date-button.is-reserved,
-.school-reservation-date-button.is-capacity-full {
+.school-reservation-date-button.is-capacity-full,
+.school-reservation-date-button.is-disabled {
   color: #c4c4c4;
   cursor: not-allowed;
 }

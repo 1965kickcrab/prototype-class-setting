@@ -23,6 +23,9 @@ coverage/
 
 # Local tool indexes
 .codegraph/
+tools/
 
 # Generated product/spec outputs
 outputs/
+demo/
+.render-deps/

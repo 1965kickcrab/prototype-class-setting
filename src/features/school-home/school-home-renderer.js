@@ -1,11 +1,13 @@
 ﻿import { createEmptyStateElement } from "../../components/empty-state.js";
 import { createBusinessNavigation, createDefaultAppBottomNavigation } from "../../components/navigation.js";
 import { createReservationSearchFilter } from "../../components/reservation-search-filter.js";
+import { createToast, TOAST_AUTO_DISMISS_MS } from "../../components/toast.js";
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { createSchoolClassSnapshot, getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
 import { addMemberPetToSchoolClass, getMemberPetRows, saveStoredMembers } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
 import { applySchoolReservationCancellation, applySchoolReservationRegistration, isActiveSchoolReservation, settlePastSchoolReservations } from "../../services/school-reservation-count-service.js";
+import { getAutoSelectedSchoolReservationClassId } from "../../services/school-reservation-class-selection-service.js";
 import { createElement } from "../../utils/dom.js";
 import { bindImeAwareInput } from "../../utils/ime-input.js";
 import {
@@ -30,6 +32,7 @@ const CLOSE_ICON_PATH = "assets/icons/iconClose.svg";
 const DAYOFF_ICON_PATH = "assets/icons/iconDayoff.svg";
 const CALENDAR_ICON_PATH = "assets/icons/iconCalendar.svg";
 const CHECK_ICON_PATH = "assets/icons/iconCheck.svg";
+let reservationToastDismissTimer = null;
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const OTHER_CLASS_GROUP_ID = "__other__";
 const OTHER_CLASS_LABEL = "기타";
@@ -101,7 +104,16 @@ function createSchoolHomeScreen(schoolHomeState) {
       },
     }));
   }
+  if (schoolHomeState.reservationToastMessage) {
+    screen.append(createReservationSuccessToast(schoolHomeState.reservationToastMessage));
+  }
   return screen;
+}
+
+function createReservationSuccessToast(message) {
+  const toast = createToast(message);
+  toast.classList.add("school-reservation-success-toast");
+  return toast;
 }
 
 function createSchoolHomeWebShell(schoolHomeState) {
@@ -1183,7 +1195,7 @@ function createMemberSuggestionList(schoolHomeState) {
     button.addEventListener("click", () => {
       schoolHomeState.reservationRegistration.selectedMemberPet = memberPet;
       schoolHomeState.reservationRegistration.memberQuery = getSelectedMemberInputText(memberPet);
-      schoolHomeState.reservationRegistration.selectedClassId = getAutoSelectedMemberSchoolClassId(memberPet);
+      schoolHomeState.reservationRegistration.selectedClassId = getAutoSelectedSchoolReservationClassId(memberPet);
       schoolHomeState.reservationRegistration.isMemberSuggestionOpen = false;
       schoolHomeState.reservationRegistration.selectedDates = schoolHomeState.reservationRegistration.selectedDates.filter((dateKey) => {
         return !isExistingReservationDate(schoolHomeState, dateKey)
@@ -1201,9 +1213,10 @@ function createMemberSuggestionList(schoolHomeState) {
 
 function createRegistrationClassField(schoolHomeState) {
   const state = schoolHomeState.reservationRegistration;
+  const isMemberSelected = Boolean(state.selectedMemberPet);
   const field = createElement("section", {
-    className: state.errors.classId ? "school-registration-field has-error" : "school-registration-field",
-    dataset: { field: "class" },
+    className: ["school-registration-field", state.errors.classId ? "has-error" : "", isMemberSelected ? "" : "is-disabled"].filter(Boolean).join(" "),
+    dataset: { field: "class", state: isMemberSelected ? "enabled" : "disabled" },
   });
   field.append(createElement("label", { className: "school-registration-label", textContent: "클래스" }));
 
@@ -1211,6 +1224,7 @@ function createRegistrationClassField(schoolHomeState) {
     className: "school-registration-input school-registration-class-select",
     dataset: { field: "classId" },
   });
+  select.disabled = !isMemberSelected;
   select.append(createElement("option", { value: "", textContent: "미지정" }));
   loadSchoolClassList().forEach((schoolClass) => {
     const option = createElement("option", {
@@ -1222,10 +1236,6 @@ function createRegistrationClassField(schoolHomeState) {
   });
   select.addEventListener("change", (event) => {
     state.selectedClassId = event.target.value;
-    state.selectedDates = state.selectedDates.filter((dateKey) => {
-      return !isExistingReservationDate(schoolHomeState, dateKey)
-        && canKeepReservationRegistrationDate(schoolHomeState, dateKey);
-    });
     state.errors.classId = "";
     state.errors.selectedDates = "";
     rerender(schoolHomeState);
@@ -1237,7 +1247,11 @@ function createRegistrationClassField(schoolHomeState) {
 
 function createRegistrationCalendarSection(schoolHomeState) {
   const state = schoolHomeState.reservationRegistration;
-  const section = createElement("section", { className: "school-registration-calendar-section" });
+  const isMemberSelected = Boolean(state.selectedMemberPet);
+  const section = createElement("section", {
+    className: isMemberSelected ? "school-registration-calendar-section" : "school-registration-calendar-section is-disabled",
+    dataset: { field: "dates", state: isMemberSelected ? "enabled" : "disabled" },
+  });
 
   const header = createElement("div", { className: "school-registration-calendar-header" });
   header.append(createElement("h3", { textContent: "날짜" }));
@@ -1260,12 +1274,17 @@ function createRegistrationMonthButton(schoolHomeState, direction, label) {
     ariaLabel: label,
     dataset: { action: "moveReservationRegistrationMonth", direction },
   });
+  button.disabled = !canSelectReservationRegistrationDate(schoolHomeState.reservationRegistration);
   button.append(createElement("img", {
     className: "button-icon",
     src: direction === "prev" ? CHEVRON_LEFT_ICON_PATH : CHEVRON_RIGHT_ICON_PATH,
     alt: "",
   }));
   button.addEventListener("click", () => {
+    if (button.disabled) {
+      return;
+    }
+
     const offset = direction === "prev" ? -1 : 1;
     schoolHomeState.reservationRegistration.currentMonth = shiftMonth(schoolHomeState.reservationRegistration.currentMonth, offset);
     rerender(schoolHomeState);
@@ -1500,7 +1519,17 @@ function submitReservationRegistration(schoolHomeState) {
   appendStoredSchoolReservations(newReservations);
   schoolHomeState.reservations = [...schoolHomeState.reservations, ...newReservations];
   schoolHomeState.selectedDate = state.selectedDates[0] || schoolHomeState.selectedDate;
+  schoolHomeState.reservationToastMessage = "예약이 등록되었습니다.";
   resetReservationRegistrationModal(schoolHomeState, state.currentMonth);
+  scheduleReservationToastDismiss(schoolHomeState);
+}
+
+function scheduleReservationToastDismiss(schoolHomeState) {
+  window.clearTimeout(reservationToastDismissTimer);
+  reservationToastDismissTimer = window.setTimeout(() => {
+    schoolHomeState.reservationToastMessage = "";
+    rerender(schoolHomeState);
+  }, TOAST_AUTO_DISMISS_MS);
 }
 
 function createReservationFromSelection(dateKey, schoolClass, memberPet) {
@@ -1554,16 +1583,6 @@ function getFilteredMemberSuggestions(schoolHomeState) {
 
 function getSelectedSchoolClass(classId) {
   return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId) || null;
-}
-
-function getAutoSelectedMemberSchoolClassId(memberPet) {
-  const memberClassIds = Array.isArray(memberPet.schoolClassIds) ? memberPet.schoolClassIds : [];
-  if (memberClassIds.length === 0) {
-    return "";
-  }
-
-  const classIds = new Set(loadSchoolClassList().map((schoolClass) => schoolClass.id));
-  return memberClassIds.find((classId) => classIds.has(classId)) || "";
 }
 
 function isExistingReservationDate(schoolHomeState, dateKey, classId = schoolHomeState.reservationRegistration.selectedClassId) {

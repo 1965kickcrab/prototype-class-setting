@@ -740,6 +740,10 @@
   background: rgba(0, 0, 0, 0.34);
 }
 
+.school-reservation-success-toast {
+  z-index: 60;
+}
+
 .school-registration-modal {
   width: min(940px, calc(100vw - 72px));
   max-height: calc(100vh - 48px);
@@ -898,6 +902,11 @@
   gap: 10px;
 }
 
+.school-registration-field.is-disabled,
+.school-registration-calendar-section.is-disabled {
+  opacity: 0.55;
+}
+
 .school-registration-calendar-header {
   display: flex;
   align-items: center;
@@ -928,6 +937,10 @@
   border-radius: 8px;
   background: #ffffff;
   padding: 0;
+}
+
+.school-registration-month-button:disabled {
+  cursor: not-allowed;
 }
 
 .school-registration-month-button .button-icon {

@@ -1,4 +1,5 @@
 import { getMemberPetRows, getStoredMembers } from "../../storage/member-storage.js";
+import { getAutoSelectedSchoolReservationClassId } from "../../services/school-reservation-class-selection-service.js";
 import { createElement } from "../../utils/dom.js";
 import { loadSchoolReservationDraft, saveSchoolReservationDraft } from "./school-reservation-draft.js";
 
@@ -28,7 +29,7 @@ function createHeader() {
     ariaLabel: "예약 등록으로 돌아가기",
   });
   backButton.addEventListener("click", () => {
-    window.location.href = "./school-reservation-create.html";
+    window.location.href = "./school-reservation-create.html?source=member-search";
   });
   header.append(backButton);
   header.append(createElement("h1", { textContent: "회원 조회" }));
@@ -79,8 +80,9 @@ function createResultList(query) {
     button.addEventListener("click", () => {
       const draft = loadSchoolReservationDraft();
       draft.memberPet = memberPet;
+      draft.selectedClassId = getAutoSelectedSchoolReservationClassId(memberPet);
       saveSchoolReservationDraft(draft);
-      window.location.href = "./school-reservation-create.html";
+      window.location.href = "./school-reservation-create.html?source=member-search";
     });
     list.append(button);
   });

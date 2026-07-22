@@ -1,3 +1,5 @@
+import { getSchoolHomeInitialView } from "../../storage/school-home-storage.js";
+
 export const SCHOOL_RESERVATION_DRAFT_STORAGE_KEY = "schoolReservationDraft";
 
 export function loadSchoolReservationDraft() {
@@ -23,17 +25,19 @@ export function createEmptySchoolReservationDraft() {
   return {
     memberPet: null,
     selectedClassId: "",
-    currentMonth: "2025-07",
+    currentMonth: getSchoolHomeInitialView().currentMonth,
     selectedDates: [],
     allowOverCapacity: false,
   };
 }
 
 function normalizeDraft(draft) {
+  const defaultDraft = createEmptySchoolReservationDraft();
+
   return {
     memberPet: draft?.memberPet || null,
     selectedClassId: String(draft?.selectedClassId || ""),
-    currentMonth: String(draft?.currentMonth || "2025-07"),
+    currentMonth: String(draft?.currentMonth || defaultDraft.currentMonth),
     selectedDates: Array.isArray(draft?.selectedDates) ? draft.selectedDates.filter(Boolean) : [],
     allowOverCapacity: Boolean(draft?.allowOverCapacity),
   };
