@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <base href="../">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>더보기</title>
@@ -27,15 +28,15 @@
         </section>
 
         <section class="app-more-shortcuts" data-area="shortcutMenu" aria-label="주요 메뉴">
-          <a class="app-more-shortcut" href="./app-class-settings.html" data-action="navigate" data-target="유치원">
+          <a class="app-more-shortcut" href="./app-more/app-class-settings.html" data-action="navigate" data-target="유치원">
             <img src="assets/icons/menuIcon_daycare_on.svg" alt="">
             <span>유치원</span>
           </a>
-          <a class="app-more-shortcut" href="#" data-action="navigate" data-target="이용권">
+          <a class="app-more-shortcut" data-action="navigate" data-target="이용권">
             <img src="assets/icons/menuIcon_ticket_on.svg" alt="">
             <span>이용권</span>
           </a>
-          <a class="app-more-shortcut" href="./member-tag-management.html" data-action="navigate" data-target="태그 관리">
+          <a class="app-more-shortcut" href="./app-more/app-member-tag-management.html" data-action="navigate" data-target="태그 관리">
             <img src="assets/icons/menuIcon_setting.svg" alt="">
             <span>태그 관리</span>
           </a>
@@ -74,10 +75,10 @@
         <button class="app-more-logout-button" type="button" data-action="logout">로그아웃</button>
 
         <nav class="mobile-bottom-nav app-more-bottom-nav" aria-label="하단 내비게이션" data-area="bottomNavigation">
-          <a class="nav-item" href="./index.html" data-action="navigate" data-target="일정">일정</a>
-          <a class="nav-item" href="./report.html" data-action="navigate" data-target="알림장">알림장</a>
-          <a class="nav-item" href="./member-home.html" data-action="navigate" data-target="회원">회원</a>
-          <a class="nav-item is-selected" href="./app-more.html" data-action="navigate" data-target="더보기" data-state="selected">더보기</a>
+          <a class="nav-item" href="./school-home/index.html" data-action="navigate" data-target="일정">일정</a>
+          <a class="nav-item" href="./report/report.html" data-action="navigate" data-target="알림장">알림장</a>
+          <a class="nav-item" href="./member-home/member-home.html" data-action="navigate" data-target="회원">회원</a>
+          <a class="nav-item is-selected" href="./app-more/app-more.html" data-action="navigate" data-target="더보기" data-state="selected">더보기</a>
         </nav>
       </section>
     </main>

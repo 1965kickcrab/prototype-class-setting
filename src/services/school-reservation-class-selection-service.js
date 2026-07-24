@@ -10,13 +10,9 @@ export function getAutoSelectedSchoolReservationClassId(memberPet) {
     .filter(Boolean)
     .sort((firstClass, secondClass) => firstClass.name.localeCompare(secondClass.name, "ko"));
 
-  if (memberClasses.length) {
-    return memberClasses[0].id;
-  }
-
   const memberId = String(memberPet?.memberId || memberPet?.id || "").trim();
   const petId = String(memberPet?.petId || "").trim();
-  return getSchoolHomeReservations()
+  const lastValidReservationClassId = getSchoolHomeReservations()
     .filter((reservation) => {
       return reservation.status !== "취소"
         && reservation.memberId === memberId
@@ -24,4 +20,10 @@ export function getAutoSelectedSchoolReservationClassId(memberPet) {
         && schoolClassById.has(reservation.classId);
     })
     .sort((firstReservation, secondReservation) => secondReservation.date.localeCompare(firstReservation.date))[0]?.classId || "";
+
+  if (lastValidReservationClassId) {
+    return lastValidReservationClassId;
+  }
+
+  return memberClasses[0]?.id || "";
 }

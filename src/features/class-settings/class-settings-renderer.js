@@ -322,7 +322,7 @@ function createClassModal(rootElement) {
     });
     deleteButton.addEventListener("click", () => {
       const deletedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === classSettingsState.editingClassId);
-      if (deletedClass && confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 클래스 미지정으로 전환되며, 당시 클래스와 정원 정보는 보존됩니다.")) {
+      if (deletedClass && confirm("클래스를 삭제하시겠습니까?\n오늘 이후 연결된 예약은 소속 클래스 없음으로 변경됩니다.\n과거 예약에는 예약 당시 클래스명이 유지됩니다.")) {
         deleteSchoolClass(deletedClass.id);
         detachStoredSchoolReservationsClass(deletedClass);
         setSchoolClassMemberPets(classSettingsState.editingClassId, []);

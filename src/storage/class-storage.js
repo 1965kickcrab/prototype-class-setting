@@ -30,6 +30,7 @@ export function createSchoolClass(classDraft) {
   const nextClass = normalizeSchoolClass({
     ...classDraft,
     id: createSchoolClassId(),
+    createdAt: new Date().toISOString(),
   });
   saveSchoolClassList([...loadSchoolClassList(), nextClass]);
   return nextClass;
@@ -88,6 +89,7 @@ function normalizeSchoolClass(schoolClass) {
   return {
     id,
     name,
+    createdAt: normalizeCreatedAt(schoolClass?.createdAt, id),
     manager: normalizeText(schoolClass?.manager),
     capacity: normalizeCapacity(schoolClass?.capacity),
     businessDays: normalizeBusinessDays(schoolClass?.businessDays),
@@ -117,10 +119,10 @@ function normalizeBusinessDays(businessDays) {
 }
 
 function sortSchoolClassList(classList) {
-  return [...classList].sort(compareSchoolClassesByName);
+  return [...classList].sort(compareSchoolClasses);
 }
 
-function compareSchoolClassesByName(leftClass, rightClass) {
+function compareSchoolClasses(leftClass, rightClass) {
   const nameOrder = String(leftClass.name || "").localeCompare(String(rightClass.name || ""), "ko", {
     numeric: true,
     sensitivity: "base",
@@ -130,7 +132,29 @@ function compareSchoolClassesByName(leftClass, rightClass) {
     return nameOrder;
   }
 
+  const createdAtOrder = String(leftClass.createdAt || "").localeCompare(String(rightClass.createdAt || ""));
+  if (createdAtOrder !== 0) {
+    return createdAtOrder;
+  }
+
   return String(leftClass.id || "").localeCompare(String(rightClass.id || ""));
+}
+
+function normalizeCreatedAt(value, classId) {
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime())) {
+    return date.toISOString();
+  }
+
+  const timestamp = String(classId || "").match(/^school-class-(\d+)-/)?.[1];
+  if (timestamp) {
+    const idDate = new Date(Number(timestamp));
+    if (!Number.isNaN(idDate.getTime())) {
+      return idDate.toISOString();
+    }
+  }
+
+  return "";
 }
 
 function createSchoolClassId() {

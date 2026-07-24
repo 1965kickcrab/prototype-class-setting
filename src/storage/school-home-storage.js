@@ -39,16 +39,26 @@ export function detachStoredSchoolReservationsClass(sourceClass) {
   }
 
   const deletedClassSnapshot = createClassSnapshot(sourceClass);
+  const todayDateKey = getTodayDateKey();
   const nextReservations = loadStoredSchoolReservations().map((reservation) => {
     if (reservation.classId !== sourceClassId) {
       return reservation;
+    }
+
+    if (reservation.date < todayDateKey) {
+      return {
+        ...reservation,
+        classId: null,
+        className: reservation.className || deletedClassSnapshot?.name || "",
+        classSnapshot: reservation.classSnapshot || deletedClassSnapshot,
+      };
     }
 
     return {
       ...reservation,
       classId: null,
       className: "",
-      classSnapshot: reservation.classSnapshot || deletedClassSnapshot,
+      classSnapshot: null,
     };
   });
 

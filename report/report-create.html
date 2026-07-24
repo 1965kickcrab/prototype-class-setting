@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <base href="../">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>알림장 작성</title>
@@ -32,11 +33,11 @@
             </div>
           </section>
           <nav class="business-side-nav" aria-label="주요 메뉴">
-            <a class="business-side-nav-item" href="./index.html" data-action="navigate" data-target="대시보드" data-state="idle">대시보드</a>
-            <a class="business-side-nav-item" href="./index.html" data-action="navigate" data-target="유치원" data-state="idle">유치원</a>
+            <a class="business-side-nav-item" href="./school-home/index.html" data-action="navigate" data-target="대시보드" data-state="idle">대시보드</a>
+            <a class="business-side-nav-item" href="./school-home/index.html" data-action="navigate" data-target="유치원" data-state="idle">유치원</a>
             <a class="business-side-nav-item" href="#" data-action="navigate" data-target="호텔링" data-state="idle">호텔링</a>
-            <a class="business-side-nav-item is-selected" href="./report.html" data-action="navigate" data-target="알림장" data-state="selected">알림장</a>
-            <a class="business-side-nav-item" href="./member-home.html" data-action="navigate" data-target="회원" data-state="idle">회원</a>
+            <a class="business-side-nav-item is-selected" href="./report/report.html" data-action="navigate" data-target="알림장" data-state="selected">알림장</a>
+            <a class="business-side-nav-item" href="./member-home/member-home.html" data-action="navigate" data-target="회원" data-state="idle">회원</a>
             <a class="business-side-nav-item" href="#" data-action="navigate" data-target="이용권" data-state="idle">이용권</a>
           </nav>
           <small class="business-navigation-footer">개인정보 처리방침  이용약관  문의</small>
@@ -47,7 +48,7 @@
             <h1>알림장 작성</h1>
             <div class="web-report-compose-control-group">
               <div class="web-report-compose-actions">
-                <a class="danger-button web-report-compose-cancel" href="./report.html" data-action="cancelReportCompose">취소</a>
+                <a class="danger-button web-report-compose-cancel" href="./report/report.html" data-action="cancelReportCompose">취소</a>
                 <button class="secondary-button web-report-compose-draft" type="button" data-action="saveReportDraft">임시저장</button>
                 <button class="primary-button web-report-compose-send" type="button" data-action="sendReport">바로전송</button>
               </div>
@@ -79,7 +80,7 @@
                 </button>
               </div>
               <div class="web-report-pet-select-box">
-                <a class="web-report-pet-select-button" href="./report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
+                <a class="web-report-pet-select-button" href="./report/report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
                   <span aria-hidden="true">+</span>
                   <strong>반려견 선택</strong>
                 </a>
@@ -124,7 +125,7 @@
 
     <main class="app-page-shell is-flex app-report-compose-screen" data-screen="appReportCompose" data-platform="app">
       <header class="app-report-compose-header" data-area="header">
-        <a class="app-report-compose-close-button" href="./report.html" aria-label="알림장 작성 닫기" data-action="closeReportCompose">
+        <a class="app-report-compose-close-button" href="./report/report.html" aria-label="알림장 작성 닫기" data-action="closeReportCompose">
           <img src="assets/icons/iconClose.svg" alt="">
         </a>
         <h1>알림장 작성</h1>
@@ -137,7 +138,7 @@
       </div>
 
       <section class="app-report-compose-content" data-area="content">
-        <a class="app-report-pet-select-button" href="./report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
+        <a class="app-report-pet-select-button" href="./report/report-pet-select.html" data-action="selectReportPet" data-field="selectedReportPets">
           <span class="app-report-pet-select-icon" aria-hidden="true">+</span>
           <span data-field="selectedReportPetSummary">반려견 선택</span>
         </a>

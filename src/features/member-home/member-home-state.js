@@ -14,6 +14,7 @@ export function createMemberHomeState() {
     currentPage: 1,
     pageSize: 10,
     isFilterPanelOpen: false,
+    activeMobileFilterTab: "memberTag",
     isTagMenuOpen: false,
     isSchoolClassMenuOpen: false,
     isMemberTagManagementOpen: false,

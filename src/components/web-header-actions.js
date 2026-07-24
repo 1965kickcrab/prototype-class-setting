@@ -1,6 +1,6 @@
 import { createElement } from "../utils/dom.js";
 
-const DEFAULT_CENTER_SETTINGS_HREF = "./center-settings.html";
+const DEFAULT_CENTER_SETTINGS_HREF = "./center-settings/business-schedule.html";
 
 export function createWebHeaderActions(options = {}) {
   const actions = createElement("div", {

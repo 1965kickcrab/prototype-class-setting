@@ -7,7 +7,7 @@ import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemb
 import { detachStoredSchoolReservationsClass } from "../../storage/school-home-storage.js";
 import { createElement } from "../../utils/dom.js";
 
-const BACK_ICON_PATH = "assets/icons/iconBack.svg";
+const BACK_ICON_PATH = "../assets/icons/iconBack.svg";
 const WEEKDAYS = [
   { key: "mon", label: "월" },
   { key: "tue", label: "화" },
@@ -444,7 +444,10 @@ function updateSubmitButtonState(submitButton) {
 
 function deleteClass() {
   const deletedClass = loadSchoolClassList().find((schoolClass) => schoolClass.id === detailState.classId);
-  if (!deletedClass || !confirm("클래스를 삭제하시겠습니까?\n연결된 예약은 클래스 미지정으로 전환되며, 당시 클래스와 정원 정보는 보존됩니다.")) {
+  if (
+    !deletedClass
+    || !confirm("클래스를 삭제하시겠습니까?\n오늘 이후 연결된 예약은 소속 클래스 없음으로 변경됩니다.\n과거 예약에는 예약 당시 클래스명이 유지됩니다.")
+  ) {
     return;
   }
 

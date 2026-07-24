@@ -112,11 +112,11 @@ function createNavigation(memberHomeState = {}) {
       label,
       selected: label === "회원",
       href: label === "대시보드" || label === "유치원"
-        ? "./index.html"
+        ? "./school-home/index.html"
         : label === "알림장"
-          ? "./report.html"
+          ? "./report/report.html"
           : label === "회원"
-            ? "./member-home.html"
+            ? "./member-home/member-home.html"
             : ""
     }))
   });
@@ -472,7 +472,7 @@ function createMemberRegistrationUrl(member, matchedByPhone) {
     queryParams.set("toast", "loaded");
   }
 
-  return `./member-registration.html?${queryParams.toString()}`;
+  return `./member-home/member-registration.html?${queryParams.toString()}`;
 }
 
 function createMemberDetailUrl(member, options = {}) {
@@ -490,7 +490,7 @@ function createMemberDetailUrl(member, options = {}) {
     queryParams.set("toast", options.toast);
   }
 
-  return `./member-detail.html?${queryParams.toString()}`;
+  return `./member-home/member-detail.html?${queryParams.toString()}`;
 }
 
 function createMemberEditScreen(memberHomeState) {
@@ -800,15 +800,34 @@ function createMobileFilterBottomSheet(memberHomeState) {
     className: "filter-bottom-sheet-body",
     dataset: { area: "memberFilterSections" },
   });
-  getMobileFilterSections(memberHomeState).forEach((section) => {
-    body.append(createMobileFilterSection(section));
-  });
+  body.append(createMobileFilterTabs(memberHomeState));
+  const activeSection = getMobileFilterSections(memberHomeState).find((section) => section.key === memberHomeState.activeMobileFilterTab);
+  body.append(createMobileFilterSection(activeSection));
 
   sheet.append(header);
   sheet.append(body);
   overlay.append(sheet);
 
   return overlay;
+}
+
+function createMobileFilterTabs(memberHomeState) {
+  const tabs = createElement("div", { className: "filter-tab-list", dataset: { area: "memberFilterTabs" } });
+  getMobileFilterSections(memberHomeState).forEach((section) => {
+    const isSelected = memberHomeState.activeMobileFilterTab === section.key;
+    const button = createElement("button", {
+      className: isSelected ? "filter-tab-button is-selected" : "filter-tab-button",
+      type: "button",
+      textContent: section.title,
+      dataset: { action: "selectMemberFilterTab", filter: section.key, state: isSelected ? "selected" : "idle" },
+    });
+    button.addEventListener("click", () => {
+      memberHomeState.activeMobileFilterTab = section.key;
+      rerender(memberHomeState);
+    });
+    tabs.append(button);
+  });
+  return tabs;
 }
 
 function getMobileFilterSections(memberHomeState) {

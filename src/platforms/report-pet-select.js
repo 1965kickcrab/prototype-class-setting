@@ -250,7 +250,7 @@ function completeSelection() {
   }
 
   sessionStorage.setItem(STORAGE_KEYS.selectedPets, JSON.stringify(getSelectedPets()));
-  window.location.href = "./report-create.html";
+  window.location.href = "./report/report-create.html";
 }
 
 function matchesReservationFilter(memberPet) {

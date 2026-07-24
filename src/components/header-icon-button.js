@@ -5,7 +5,7 @@ const HEADER_ICON_PATHS = {
   close: "assets/icons/iconClose.svg",
 };
 
-export function createHeaderIconButton({ className, icon, ariaLabel, dataset }) {
+export function createHeaderIconButton({ className, icon, iconPath, ariaLabel, dataset }) {
   const button = createElement("button", {
     className,
     type: "button",
@@ -15,7 +15,7 @@ export function createHeaderIconButton({ className, icon, ariaLabel, dataset }) 
 
   button.append(createElement("img", {
     className: "button-icon",
-    src: HEADER_ICON_PATHS[icon],
+    src: iconPath || HEADER_ICON_PATHS[icon],
     alt: "",
   }));
   return button;

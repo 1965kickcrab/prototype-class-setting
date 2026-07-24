@@ -2,7 +2,7 @@ import { createSchoolClass, loadSchoolClassList } from "../../storage/class-stor
 import { getMemberPetKey, getMemberPetRows, getStoredMembers, setSchoolClassMemberPets } from "../../storage/member-storage.js";
 import { createElement } from "../../utils/dom.js";
 
-const BACK_ICON_PATH = "assets/icons/iconBack.svg";
+const BACK_ICON_PATH = "../assets/icons/iconBack.svg";
 const WEEKDAYS = [
   { key: "mon", label: "월" },
   { key: "tue", label: "화" },

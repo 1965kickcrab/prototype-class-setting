@@ -272,27 +272,6 @@ export function updateMemberPetSchoolClassIds(memberId, petId, schoolClassIds) {
   return saveStoredMembers(nextMembers);
 }
 
-export function addMemberPetToSchoolClass(memberId, petId, classId) {
-  const targetMemberId = String(memberId || "").trim();
-  const targetPetId = String(petId || "").trim();
-  const targetClassId = String(classId || "").trim();
-  const members = getStoredMembers();
-
-  if (!targetMemberId || !targetPetId || !targetClassId) {
-    return members;
-  }
-
-  const memberPet = getMemberPetRows(members).find((row) => {
-    return row.memberId === targetMemberId && row.petId === targetPetId;
-  });
-  const currentClassIds = normalizeSchoolClassIds(memberPet?.schoolClassIds);
-  if (currentClassIds.includes(targetClassId)) {
-    return members;
-  }
-
-  return updateMemberPetSchoolClassIds(targetMemberId, targetPetId, [...currentClassIds, targetClassId]);
-}
-
 export function findMemberPet(member, petId) {
   const pets = Array.isArray(member?.pets) ? member.pets : getMemberPets(member);
 

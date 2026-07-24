@@ -1,5 +1,5 @@
 import { createSchoolClassSnapshot, loadSchoolClassList } from "../../storage/class-storage.js";
-import { addMemberPetToSchoolClass, getStoredMembers, saveStoredMembers } from "../../storage/member-storage.js";
+import { getStoredMembers, saveStoredMembers } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeReservations } from "../../storage/school-home-storage.js";
 import { applySchoolReservationRegistration, isActiveSchoolReservation } from "../../services/school-reservation-count-service.js";
 import { getCalendarMatrix, getMonthLabel, shiftMonth } from "../school-home/school-home-state.js";
@@ -56,7 +56,7 @@ function createHeader() {
     ariaLabel: "유치원으로 돌아가기",
   });
   backButton.addEventListener("click", () => {
-    window.location.href = "./index.html";
+    window.location.href = "./school-home/index.html";
   });
 
   header.append(backButton);
@@ -95,7 +95,7 @@ function createMemberSection(draft) {
   }));
   button.addEventListener("click", () => {
     saveSchoolReservationDraft(draft);
-    window.location.href = "./school-reservation-member-search.html";
+    window.location.href = "./school-home/school-reservation-member-search.html";
   });
   section.append(button);
   return section;
@@ -167,7 +167,7 @@ function createClassOption(rootElement, draft, schoolClass) {
   const button = createElement("button", {
     className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
     type: "button",
-    textContent: schoolClass?.name || "미지정",
+    textContent: schoolClass?.name || "소속 클래스 없음",
     dataset: { action: "selectClass", entityId: classId, state: isSelected ? "selected" : "idle" },
   });
   button.addEventListener("click", () => {
@@ -186,10 +186,10 @@ function closeClassBottomSheet(rootElement) {
 
 function getSelectedClassName(classId) {
   if (!classId) {
-    return "미지정";
+    return "소속 클래스 없음";
   }
 
-  return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.name || "미지정";
+  return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.name || "소속 클래스 없음";
 }
 
 function createDateSection(rootElement, draft) {
@@ -365,9 +365,6 @@ function submitReservation(rootElement, draft) {
     reservations.length,
   );
   saveStoredMembers(nextMembers);
-  if (selectedClass) {
-    addMemberPetToSchoolClass(draft.memberPet.memberId || draft.memberPet.id, draft.memberPet.petId, selectedClass.id);
-  }
   appendStoredSchoolReservations(reservations);
   clearSchoolReservationDraft();
   isClassBottomSheetOpen = false;

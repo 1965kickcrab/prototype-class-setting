@@ -53,7 +53,7 @@ function createMemberRegistrationShell(memberRegistrationState) {
   });
 
   shell.append(createHeader("회원 등록", () => {
-    window.location.href = "./member-home.html";
+    window.location.href = "./member-home/member-home.html";
   }));
   shell.append(createSideNavigation());
   shell.append(createContent(memberRegistrationState));
@@ -116,11 +116,11 @@ function createSideNavigation() {
       label,
       selected: label === "회원",
       href: label === "대시보드" || label === "유치원"
-        ? "./index.html"
+        ? "./school-home/index.html"
         : label === "알림장"
-          ? "./report.html"
+          ? "./report/report.html"
           : label === "회원"
-            ? "./member-home.html"
+            ? "./member-home/member-home.html"
             : ""
     }))
   });
@@ -865,7 +865,7 @@ function createRegistrationAlert(memberRegistrationState) {
       saveRegisteredMembers([memberToRegister]);
     }
 
-    window.location.href = isCancelAlert ? "./member-home.html" : "./member-home.html?toast=memberRegistered";
+    window.location.href = isCancelAlert ? "./member-home/member-home.html" : "./member-home/member-home.html?toast=memberRegistered";
   });
 
   actions.append(closeButton);

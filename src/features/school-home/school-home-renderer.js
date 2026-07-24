@@ -4,7 +4,7 @@ import { createReservationSearchFilter } from "../../components/reservation-sear
 import { createToast, TOAST_AUTO_DISMISS_MS } from "../../components/toast.js";
 import { createWebHeaderActions } from "../../components/web-header-actions.js";
 import { createSchoolClassSnapshot, getSchoolClassCapacityTotal, loadSchoolClassList } from "../../storage/class-storage.js";
-import { addMemberPetToSchoolClass, getMemberPetRows, saveStoredMembers } from "../../storage/member-storage.js";
+import { getMemberPetRows, saveStoredMembers } from "../../storage/member-storage.js";
 import { appendStoredSchoolReservations, createSchoolReservationId, getSchoolHomeInitialView, saveStoredSchoolReservations } from "../../storage/school-home-storage.js";
 import { applySchoolReservationCancellation, applySchoolReservationRegistration, isActiveSchoolReservation, settlePastSchoolReservations } from "../../services/school-reservation-count-service.js";
 import { getAutoSelectedSchoolReservationClassId } from "../../services/school-reservation-class-selection-service.js";
@@ -35,7 +35,7 @@ const CHECK_ICON_PATH = "assets/icons/iconCheck.svg";
 let reservationToastDismissTimer = null;
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const OTHER_CLASS_GROUP_ID = "__other__";
-const OTHER_CLASS_LABEL = "기타";
+const OTHER_CLASS_LABEL = "소속 클래스 없음";
 const DELETED_CLASS_GROUP_PREFIX = "deleted-class:";
 const REGISTRATION_CLASS_WEEKDAYS = [
   { key: "mon", label: "월" },
@@ -170,11 +170,11 @@ function createSchoolNavigation(platform) {
     },
     footerText: "개인정보 처리방침  이용약관  문의",
     items: [
-      { label: "대시보드", href: "./index.html" },
-      { label: "유치원", selected: true, href: "./index.html" },
+      { label: "대시보드", href: "./school-home/index.html" },
+      { label: "유치원", selected: true, href: "./school-home/index.html" },
       { label: "호텔링" },
-      { label: "알림장", href: "./report.html" },
-      { label: "회원", href: "./member-home.html" },
+      { label: "알림장", href: "./report/report.html" },
+      { label: "회원", href: "./member-home/member-home.html" },
       { label: "이용권" }
     ]
   });
@@ -338,7 +338,7 @@ function createAppHeader(schoolHomeState) {
   title.append(createElement("span", { textContent: `정원 ${getSchoolCapacityCount()}` }));
   if (schoolHomeState.isModeMenuOpen) {
     title.append(createAppModeMenu([
-      { label: "유치원", href: "./index.html", selected: true },
+      { label: "유치원", href: "./school-home/index.html", selected: true },
     ]));
   }
   left.append(title);
@@ -350,7 +350,7 @@ function createAppHeader(schoolHomeState) {
     textContent: "예약 등록",
   });
   registerButton.addEventListener("click", () => {
-    window.location.href = "./school-reservation-create.html";
+    window.location.href = "./school-home/school-reservation-create.html";
   });
   utility.append(registerButton);
   utility.append(searchButton);
@@ -840,7 +840,7 @@ function createWebReservationClassOption(schoolHomeState, reservation, schoolCla
   const button = createElement("button", {
     className: isSelected ? "school-reservation-class-option is-selected" : "school-reservation-class-option",
     type: "button",
-    textContent: schoolClass?.name || "미지정",
+    textContent: schoolClass?.name || "소속 클래스 없음",
     dataset: {
       action: "selectReservationClass",
       entityId: reservation.id,
@@ -928,7 +928,7 @@ function createAppReservationBody(schoolHomeState, summary, reservations = summa
     });
     more.append(createElement("img", { className: "button-icon", src: CHEVRON_RIGHT_ICON_PATH, alt: "" }));
     more.addEventListener("click", () => {
-      window.location.href = `./school-reservation-detail.html?id=${encodeURIComponent(reservation.id)}`;
+      window.location.href = `./school-home/school-reservation-detail.html?id=${encodeURIComponent(reservation.id)}`;
     });
     item.append(more);
     list.append(item);
@@ -1225,7 +1225,7 @@ function createRegistrationClassField(schoolHomeState) {
     dataset: { field: "classId" },
   });
   select.disabled = !isMemberSelected;
-  select.append(createElement("option", { value: "", textContent: "미지정" }));
+  select.append(createElement("option", { value: "", textContent: "소속 클래스 없음" }));
   loadSchoolClassList().forEach((schoolClass) => {
     const option = createElement("option", {
       value: schoolClass.id,
@@ -1509,13 +1509,6 @@ function submitReservationRegistration(schoolHomeState) {
     newReservations.length,
   );
   saveStoredMembers(schoolHomeState.members);
-  if (selectedClass) {
-    schoolHomeState.members = addMemberPetToSchoolClass(
-      selectedMemberPet.memberId || selectedMemberPet.id,
-      selectedMemberPet.petId,
-      selectedClass.id,
-    );
-  }
   appendStoredSchoolReservations(newReservations);
   schoolHomeState.reservations = [...schoolHomeState.reservations, ...newReservations];
   schoolHomeState.selectedDate = state.selectedDates[0] || schoolHomeState.selectedDate;
@@ -1751,7 +1744,7 @@ function createReservationSearchResultItem(reservation, featureName) {
   });
   more.append(createElement("img", { className: "button-icon", src: CHEVRON_RIGHT_ICON_PATH, alt: "" }));
   more.addEventListener("click", () => {
-    window.location.href = `./school-reservation-detail.html?id=${encodeURIComponent(reservation.id)}`;
+      window.location.href = `./school-home/school-reservation-detail.html?id=${encodeURIComponent(reservation.id)}`;
   });
   row.append(more);
   item.append(row);
@@ -1818,11 +1811,10 @@ function getReservationClassName(reservation) {
   }
 
   if (!String(reservation?.classId || "").trim()) {
-    const snapshotName = String(reservation?.classSnapshot?.name || "").trim();
-    return snapshotName ? `${snapshotName} (삭제됨)` : OTHER_CLASS_LABEL;
+    return String(reservation?.className || reservation?.classSnapshot?.name || "").trim() || OTHER_CLASS_LABEL;
   }
 
-  return reservation.className || getClassNameById(reservation.classId) || "미지정";
+  return reservation.className || getClassNameById(reservation.classId) || "소속 클래스 없음";
 }
 
 function isClassCapacityClosed(classId, reservationCount) {
@@ -1852,7 +1844,7 @@ function getClassNameById(classId) {
     return "";
   }
 
-  return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.name || "미지정";
+  return loadSchoolClassList().find((schoolClass) => schoolClass.id === classId)?.name || "소속 클래스 없음";
 }
 
 function formatReservationSearchDate(dateText) {

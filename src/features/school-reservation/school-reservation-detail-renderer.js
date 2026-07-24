@@ -53,7 +53,7 @@ function createHeader(reservation) {
   });
   backButton.append(createElement("img", { className: "button-icon", src: "assets/icons/iconBack.svg", alt: "" }));
   backButton.addEventListener("click", () => {
-    window.location.href = "./index.html";
+    window.location.href = "./school-home/index.html";
   });
 
   const cancelButton = createElement("button", {
@@ -142,7 +142,7 @@ function getReservationClassLabel(reservation) {
 
   const snapshotName = reservation.classSnapshot?.name || "";
   if (!snapshotName) {
-    return "미지정";
+    return "소속 클래스 없음";
   }
 
   const capacity = reservation.classSnapshot?.capacity;
@@ -178,7 +178,7 @@ function cancelReservation(reservationId) {
     saveStoredMembers(nextMembers);
     saveStoredSchoolReservations(nextReservations);
   }
-  window.location.href = "./index.html";
+  window.location.href = "./school-home/index.html";
 }
 
 function createClassBottomSheet(reservation) {
@@ -221,7 +221,7 @@ function createReservationClassOption(reservation, schoolClass) {
   const option = createElement("button", {
     className: isSelected ? "school-reservation-class-sheet-option is-selected" : "school-reservation-class-sheet-option",
     type: "button",
-    textContent: schoolClass?.name || "미지정",
+    textContent: schoolClass?.name || "소속 클래스 없음",
     dataset: {
       action: "selectReservationClass",
       classId,

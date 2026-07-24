@@ -101,10 +101,10 @@ export function createDefaultAppBottomNavigation(options = {}) {
     ariaLabel: options.ariaLabel,
     itemClassName: options.itemClassName,
     items: [
-      { label: "일정", selected: selectedLabel === "일정", href: "./index.html" },
-      { label: "알림장", selected: selectedLabel === "알림장", href: "./report.html" },
-      { label: "회원", selected: selectedLabel === "회원", href: "./member-home.html" },
-      { label: "더보기", selected: selectedLabel === "더보기", href: "./app-more.html" },
+      { label: "일정", selected: selectedLabel === "일정", href: "./school-home/index.html" },
+      { label: "알림장", selected: selectedLabel === "알림장", href: "./report/report.html" },
+      { label: "회원", selected: selectedLabel === "회원", href: "./member-home/member-home.html" },
+      { label: "더보기", selected: selectedLabel === "더보기", href: "./app-more/app-more.html" },
     ],
   });
 }

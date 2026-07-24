@@ -38,6 +38,7 @@ export function createSchoolHomeState() {
     selectedMemberTagNames: [],
     tagFilterQuery: "",
     isTagMenuOpen: false,
+    activeReservationFilterTab: "tag",
     isModeMenuOpen: false,
     reservationRegistration: createReservationRegistrationState(initialView.currentMonth),
   };

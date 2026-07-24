@@ -29,7 +29,7 @@ function createHeader() {
     ariaLabel: "예약 등록으로 돌아가기",
   });
   backButton.addEventListener("click", () => {
-    window.location.href = "./school-reservation-create.html?source=member-search";
+    window.location.href = "./school-home/school-reservation-create.html?source=member-search";
   });
   header.append(backButton);
   header.append(createElement("h1", { textContent: "회원 조회" }));
@@ -50,7 +50,7 @@ function createSearchContent(query) {
     if (event.target.value) {
       nextParams.set("q", event.target.value);
     }
-    window.location.href = `./school-reservation-member-search.html${nextParams.toString() ? `?${nextParams}` : ""}`;
+    window.location.href = `./school-home/school-reservation-member-search.html${nextParams.toString() ? `?${nextParams}` : ""}`;
   });
   content.append(input);
   content.append(createResultList(query));
@@ -82,7 +82,7 @@ function createResultList(query) {
       draft.memberPet = memberPet;
       draft.selectedClassId = getAutoSelectedSchoolReservationClassId(memberPet);
       saveSchoolReservationDraft(draft);
-      window.location.href = "./school-reservation-create.html?source=member-search";
+      window.location.href = "./school-home/school-reservation-create.html?source=member-search";
     });
     list.append(button);
   });

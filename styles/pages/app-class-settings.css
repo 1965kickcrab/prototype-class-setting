@@ -42,7 +42,6 @@
 }
 
 .app-class-register-button {
-  width: 88px;
   min-width: 0;
   height: 36px;
   justify-self: end;
@@ -51,7 +50,6 @@
   background: transparent;
   color: var(--color-primary);
   padding: 0 8px;
-  font-size: 14px;
 }
 
 .app-class-content {
@@ -159,7 +157,6 @@
   }
 
   .app-class-register-button {
-    width: 82px;
     font-size: 12px;
   }
 }

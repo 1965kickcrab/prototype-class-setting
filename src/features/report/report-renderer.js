@@ -84,11 +84,11 @@ function createReportNavigation() {
     },
     footerText: "개인정보 처리방침  이용약관  문의",
     items: [
-      { label: "대시보드", href: "./index.html" },
-      { label: "유치원", href: "./index.html" },
+      { label: "대시보드", href: "./school-home/index.html" },
+      { label: "유치원", href: "./school-home/index.html" },
       { label: "호텔링" },
-      { label: "알림장", selected: true, href: "./report.html" },
-      { label: "회원", href: "./member-home.html" },
+      { label: "알림장", selected: true, href: "./report/report.html" },
+      { label: "회원", href: "./member-home/member-home.html" },
       { label: "이용권" },
     ],
   });
@@ -111,7 +111,7 @@ function createWebReportContent(entries, allEntries) {
     dataset: { action: "createReport" },
   });
   writeButton.addEventListener("click", () => {
-    window.location.href = "./report-create.html?reset=true";
+    window.location.href = "./report/report-create.html?reset=true";
   });
   actions.append(writeButton);
   titleBar.append(actions);
@@ -426,7 +426,7 @@ function createWriteFab() {
     dataset: { action: "createReport" },
   });
   button.addEventListener("click", () => {
-    window.location.href = "./report-create.html?reset=true";
+    window.location.href = "./report/report-create.html?reset=true";
   });
   button.append(createElement("span", { className: "app-report-fab-icon", textContent: "+" }));
   button.append(createElement("span", { textContent: "알림장 작성" }));

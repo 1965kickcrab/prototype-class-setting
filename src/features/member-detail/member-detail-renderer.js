@@ -94,11 +94,11 @@ function createNavigation() {
       label,
       selected: label === "회원",
       href: label === "대시보드" || label === "유치원"
-        ? "./index.html"
+        ? "./school-home/index.html"
         : label === "알림장"
-          ? "./report.html"
+          ? "./report/report.html"
           : label === "회원"
-            ? "./member-home.html"
+            ? "./member-home/member-home.html"
             : ""
     }))
   });
@@ -260,7 +260,7 @@ function createBackNavigationButton() {
     dataset: { action: "backToMemberHome" },
   });
   button.addEventListener("click", () => {
-    window.location.href = "./member-home.html";
+    window.location.href = "./member-home/member-home.html";
   });
   return button;
 }
@@ -276,7 +276,7 @@ function createMemberEditUrl(memberDetailState) {
     queryParams.set("petId", memberDetailState.selectedPet.id);
   }
 
-  return `./member-edit.html?${queryParams.toString()}`;
+  return `./member-home/member-edit.html?${queryParams.toString()}`;
 }
 
 function createReservationHighlightCard(member) {

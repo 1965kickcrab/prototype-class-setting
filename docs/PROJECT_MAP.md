@@ -14,19 +14,17 @@ Source of truth for audience/runtime scope: `project-profile.json`
 
 ### Web and Responsive Pages
 
-- `index.html`: school home calendar and capacity screen; boots `src/main.js`.
-- `member-home.html`: member list/search screen; boots `src/platforms/member-home.js`.
-- `member-registration.html`: member registration screen; boots `src/platforms/member-registration.js`.
-- `member-detail.html`: member detail screen; boots `src/platforms/member-detail.js`.
-- `member-edit.html`: member edit screen; boots `src/platforms/member-edit.js`.
-- `member-tag-management.html`: member tag management screen; boots `src/platforms/member-tag-management.js`.
-- `school-reservation-create.html`: school reservation create flow; boots `src/platforms/school-reservation-create.js`.
-- `school-reservation-detail.html`: school reservation detail flow; boots `src/platforms/school-reservation-detail.js`.
-- `school-reservation-member-search.html`: school reservation member search flow; boots `src/platforms/school-reservation-member-search.js`.
+- `school-home/index.html`: school home calendar and capacity screen; boots `src/main.js`.
+- `school-home/school-reservation-create.html`: school reservation create flow; boots `src/platforms/school-reservation-create.js`.
+- `school-home/school-reservation-detail.html`: school reservation detail flow; boots `src/platforms/school-reservation-detail.js`.
+- `school-home/school-reservation-member-search.html`: school reservation member search flow; boots `src/platforms/school-reservation-member-search.js`.
+- `member-home/member-home.html`: member list/search screen; boots `src/platforms/member-home.js`.
+- `member-home/member-registration.html`: member registration screen; boots `src/platforms/member-registration.js`.
+- `member-home/member-detail.html`: member detail screen; boots `src/platforms/member-detail.js`.
+- `member-home/member-edit.html`: member edit screen; boots `src/platforms/member-edit.js`.
 
 ### Center Settings Pages
 
-- `center-settings.html`: redirect shell to `center-settings/business-schedule.html`.
 - `center-settings/business-schedule.html`: school business/day-off settings shell; boots `src/platforms/business-schedule-settings.js`.
 - `center-settings/class.html`: Web class settings list and modal management; boots `src/platforms/class-settings.js`.
 - `center-settings/class-create.html`: Web class creation form; boots `src/platforms/class-create.js`.
@@ -34,17 +32,18 @@ Source of truth for audience/runtime scope: `project-profile.json`
 
 ### App Pages
 
-- `app-more.html`: static App more/settings menu markup styled by `styles/pages/app-more.css`.
-- `app-class-settings.html`: App class settings list; boots `src/platforms/app-class-settings.js`.
-- `app-class-registration.html`: App class registration flow; boots `src/platforms/app-class-registration.js`.
-- `app-class-detail.html`: App class detail flow; boots `src/platforms/app-class-detail.js`.
-- `report.html`: App/Web report list screen; boots `src/platforms/report.js`.
-- `report-create.html`: App/Web report compose shell; boots `src/platforms/report-create.js`.
-- `report-pet-select.html`: App report pet selection flow; boots `src/platforms/report-pet-select.js`.
+- `app-more/app-more.html`: static App more/settings menu markup styled by `styles/pages/app-more.css`.
+- `app-more/app-class-settings.html`: App class settings list; boots `src/platforms/app-class-settings.js`.
+- `app-more/app-class-registration.html`: App class registration flow; boots `src/platforms/app-class-registration.js`.
+- `app-more/app-class-detail.html`: App class detail flow; boots `src/platforms/app-class-detail.js`.
+- `app-more/app-member-tag-management.html`: App member tag management screen; boots `src/platforms/member-tag-management.js`.
+- `report/report.html`: App/Web report list screen; boots `src/platforms/report.js`.
+- `report/report-create.html`: App/Web report compose shell; boots `src/platforms/report-create.js`.
+- `report/report-pet-select.html`: App report pet selection flow; boots `src/platforms/report-pet-select.js`.
 
 ## Runtime
 
-- `src/main.js`: default bootstrap for `index.html`; creates school home state and renders the school home screen.
+- `src/main.js`: bootstrap for `school-home/index.html`; creates school home state and renders the school home screen.
 - `src/platforms/`: one file per HTML entrypoint when the page is module-driven.
 - Platform files should stay thin: load state, call feature renderers, or attach page-specific behavior.
 - Feature modules own screen behavior and rendering; storage/services own persistence and business rules.

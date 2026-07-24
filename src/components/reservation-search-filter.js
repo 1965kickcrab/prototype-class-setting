@@ -1,5 +1,6 @@
 import { createEmptyStateElement } from "./empty-state.js";
 import { sortMemberTagNames } from "../services/member-tag-service.js";
+import { loadSchoolClassList } from "../storage/class-storage.js";
 import { createElement } from "../utils/dom.js";
 import { bindImeAwareInput } from "../utils/ime-input.js";
 
@@ -196,8 +197,8 @@ function createReservationTagFilter(state, options) {
   const button = createElement("button", {
     className: options.filterButtonClassName || "filter-select-button",
     type: "button",
-    textContent: getSelectedTagSummary(state),
-    dataset: { action: "toggleReservationTagFilter" },
+    textContent: getReservationFilterSummary(state),
+    dataset: { action: "toggleReservationFilter" },
   });
   button.addEventListener("click", () => {
     state.isTagMenuOpen = !state.isTagMenuOpen;
@@ -235,15 +236,72 @@ function createReservationTagBottomSheet(state, options) {
   });
   header.append(closeButton);
 
+  header.querySelector("h3").textContent = "필터";
   sheet.append(header);
-  sheet.append(createTagSearchControl(state, {
+  sheet.append(createReservationFilterTabs(state, options));
+  sheet.append(createReservationFilterTabPanel(state, options));
+  overlay.append(sheet);
+  return overlay;
+}
+
+function createReservationFilterTabs(state, options) {
+  const tabs = createElement("div", { className: "filter-tab-list", dataset: { area: "reservationFilterTabs" } });
+  [{ key: "tag", label: "태그" }, { key: "class", label: "클래스" }].forEach((tab) => {
+    const isSelected = (state.activeReservationFilterTab || "tag") === tab.key;
+    const button = createElement("button", {
+      className: isSelected ? "filter-tab-button is-selected" : "filter-tab-button",
+      type: "button",
+      textContent: tab.label,
+      dataset: { action: "selectReservationFilterTab", filter: tab.key, state: isSelected ? "selected" : "idle" },
+    });
+    button.addEventListener("click", () => {
+      state.activeReservationFilterTab = tab.key;
+      options.rerender(state);
+    });
+    tabs.append(button);
+  });
+  return tabs;
+}
+
+function createReservationFilterTabPanel(state, options) {
+  const activeTab = state.activeReservationFilterTab || "tag";
+  const panel = createElement("div", { className: "reservation-filter-tab-panel", dataset: { area: "reservationFilterTabPanel", filter: activeTab } });
+  if (activeTab === "class") {
+    panel.append(createReservationClassMenu(state, options));
+    return panel;
+  }
+  panel.append(createTagSearchControl(state, {
     ...options,
     tagSearchControlClassName: "member-tag-search-control member-tag-search-filter-control",
     tagSearchInputSelector: ".reservation-tag-bottom-sheet .member-tag-search-input",
   }));
-  sheet.append(createReservationTagMenu(state, options, { includeSearch: false }));
-  overlay.append(sheet);
-  return overlay;
+  panel.append(createReservationTagMenu(state, options, { includeSearch: false }));
+  return panel;
+}
+
+function createReservationClassMenu(state, options) {
+  const classes = loadSchoolClassList();
+  const menu = createElement("div", { className: "tag-multi-select-menu class-multi-select-menu", dataset: { area: "reservationClassMenu", state: classes.length ? "list" : "empty" } });
+  if (!classes.length) {
+    menu.append(createTagEmptyState("등록된 클래스가 없습니다."));
+    return menu;
+  }
+  const list = createElement("div", { className: "member-tag-data-list school-class-data-list" });
+  [{ id: "", name: "전체 클래스" }, ...classes].forEach((schoolClass) => {
+    const isSelected = String(state.selectedSchoolClassId || "") === String(schoolClass.id || "");
+    const option = createElement("label", { className: "member-tag-checkbox-option", dataset: { action: "selectReservationClass", entityId: schoolClass.id || "all", state: isSelected ? "selected" : "idle" } });
+    const radio = createElement("input", { type: "radio", name: "reservationSchoolClass" });
+    radio.checked = isSelected;
+    radio.addEventListener("change", () => {
+      state.selectedSchoolClassId = schoolClass.id || "";
+      options.rerender(state);
+    });
+    option.append(radio);
+    option.append(createElement("span", { textContent: schoolClass.name || "-" }));
+    list.append(option);
+  });
+  menu.append(list);
+  return menu;
 }
 
 function createReservationTagMenu(state, options, menuOptions = {}) {
@@ -405,6 +463,11 @@ function getSelectedTagSummary(state) {
     return "태그";
   }
   return `태그 (${state.selectedMemberTagNames.length})`;
+}
+
+function getReservationFilterSummary(state) {
+  const count = (state.selectedMemberTagNames?.length || 0) + (state.selectedSchoolClassId ? 1 : 0);
+  return count ? `필터 (${count})` : "필터";
 }
 
 function createTagEmptyState(title) {

@@ -1,8 +1,9 @@
 import { loadSchoolClassList } from "../../storage/class-storage.js";
+import { createEmptyStateElement } from "../../components/empty-state.js";
 import { createElement } from "../../utils/dom.js";
 
-const BACK_ICON_PATH = "assets/icons/iconBack.svg";
-const CHEVRON_RIGHT_ICON_PATH = "assets/icons/iconChevronRight.svg";
+const BACK_ICON_PATH = "../assets/icons/iconBack.svg";
+const CHEVRON_RIGHT_ICON_PATH = "../assets/icons/iconChevronRight.svg";
 const WEEKDAY_LABELS = {
   mon: "월",
   tue: "화",
@@ -49,7 +50,7 @@ function createHeader() {
   const registerButton = createElement("button", {
     className: "primary-button app-class-register-button",
     type: "button",
-    textContent: "클래스 등록",
+    textContent: "등록",
     dataset: { action: "openClassRegistration" },
   });
   registerButton.addEventListener("click", () => {
@@ -67,6 +68,11 @@ function createContent(schoolClassList) {
     className: "app-class-content",
     dataset: { area: "content", state: schoolClassList.length ? "list" : "empty" },
   });
+
+  if (schoolClassList.length === 0) {
+    content.append(createEmptyStateElement({ title: "등록된 클래스가 없습니다." }));
+    return content;
+  }
 
   const list = createElement("section", {
     className: "app-class-list",

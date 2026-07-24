@@ -555,7 +555,7 @@ function createDeleteAlert(memberEditState) {
   const deleteButton = createElement("button", { className: "alert-danger-button", type: "button", textContent: "전체 삭제" });
   deleteButton.addEventListener("click", () => {
     deleteStoredMember(memberEditState.selectedMember.id);
-    window.location.href = "./member-home.html";
+    window.location.href = "./member-home/member-home.html";
   });
 
   actions.append(closeButton);
@@ -585,7 +585,7 @@ function createMemberDetailUrl(memberEditState) {
   if (memberEditState.selectedPet.id) {
     queryParams.set("petId", memberEditState.selectedPet.id);
   }
-  return `./member-detail.html?${queryParams.toString()}`;
+  return `./member-home/member-detail.html?${queryParams.toString()}`;
 }
 
 function applyPetDraft(pet, draft) {

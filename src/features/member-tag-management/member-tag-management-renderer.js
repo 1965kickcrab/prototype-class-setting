@@ -56,11 +56,12 @@ function createHeader() {
   const backButton = createHeaderIconButton({
     className: "page-close-button back-button",
     icon: "back",
+    iconPath: "../assets/icons/iconChevronLeft.svg",
     ariaLabel: "태그 관리 닫기",
     dataset: { action: "closeMemberTagManagement" },
   });
   backButton.addEventListener("click", () => {
-    window.location.href = "./member-home.html";
+    window.location.href = "./app-more.html";
   });
   header.append(backButton);
   header.append(createElement("h1", { textContent: "태그 관리" }));
